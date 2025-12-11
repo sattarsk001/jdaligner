@@ -12,6 +12,7 @@ import secrets
 import tempfile
 import subprocess
 
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:8000")
 
 import smtplib
 from email.message import EmailMessage
