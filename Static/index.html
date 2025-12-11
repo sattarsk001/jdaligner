@@ -1,0 +1,6131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume Tailor + ATS</title>
+<style>
+  /* --------------------------------------------------
+   * 1. DESIGN TOKENS (COLORS, RADII, SHADOWS)
+   * -------------------------------------------------- */
+  :root {
+    --bg: #f4f5fb;
+    --card-bg: #ffffff;
+    --accent: #5b5be7;
+    --accent-soft: #eef0ff;
+    --accent-dark: #3232b0;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --border-soft: #e5e7eb;
+    --danger: #b91c1c;
+    --shadow-soft: 0 18px 35px rgba(15, 23, 42, 0.12);
+    --radius-lg: 16px;
+  }
+
+  /* --------------------------------------------------
+   * 2. GLOBAL RESET / BASE ELEMENTS
+   * -------------------------------------------------- */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top left, #eef0ff, #f9fafb);
+    color: var(--text-main);
+  }
+
+  h1, h2, h3, h4 {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  a {
+    color: var(--accent);
+  }
+
+  input[type="file"],
+  textarea,
+  input[type="text"] {
+    font-family: inherit;
+  }
+
+  /* Global textarea behavior: vertical resize only, to keep layouts stable */
+  textarea {
+    resize: vertical;   /* up/down only */
+    max-width: 100%;    /* don’t overflow the parent horizontally */
+  }
+
+  /* --------------------------------------------------
+   * 3. BUTTONS (PRIMARY / SECONDARY / GHOST)
+   * -------------------------------------------------- */
+  button {
+    cursor: pointer;
+    border-radius: 999px;
+    border: none;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: white;
+    transition:
+      background 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.05s ease;
+  }
+
+  button:hover {
+    background: var(--accent-dark);
+    box-shadow: 0 8px 16px rgba(91, 91, 231, 0.35);
+    transform: translateY(-1px);
+  }
+
+  button:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* Neutral gray button */
+  button.secondary {
+    background: #e5e7eb;
+    color: #111827;
+    box-shadow: none;
+  }
+
+  button.secondary:hover {
+    background: #d1d5db;
+    box-shadow: none;
+  }
+
+  /* Transparent / subtle button */
+  button.ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 10px;
+    padding-inline: 8px;
+    box-shadow: none;
+  }
+
+  button.ghost:hover {
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text-main);
+  }
+
+  /* --------------------------------------------------
+   * 4. APP HEADER (STICKY TOP BAR)
+   * -------------------------------------------------- */
+    .app-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* brand | nav | status+logout */
+    align-items: center;
+    padding: 14px 32px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    backdrop-filter: blur(16px);
+    background: linear-gradient(
+      to right,
+      rgba(248, 250, 252, 0.92),
+      rgba(239, 246, 255, 0.92)
+    );
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    background: radial-gradient(circle at 20% 0%, #ffffff, #818cf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
+  }
+
+  .brand-mark {
+  background: #000;
+  }
+
+
+  .brand-title {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-title span:first-child {
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4b5563;
+  }
+
+  .brand-title span:last-child {
+    font-size: 18px;
+  }
+
+    .app-header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Special styling just for the Sign out button */
+  #logoutBtn {
+  font-weight: 700;                          /* bolder text */
+  color: #b91c1c;                            /* red text */
+  border: 1px solid #b91c1c;                 /* red border */
+  background: rgba(248, 113, 113, 0.08);     /* soft red highlight */
+  padding-inline: 12px;
+  }
+
+  #logoutBtn:hover {
+  background: #b91c1c;                       /* solid red on hover */
+  color: #ffffff;                            /* white text */
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.35);
+  transform: translateY(-1px);
+  }
+
+
+
+    /* Center nav, bigger pills, dark highlight */
+  .app-nav {
+    display: none;              /* JS will set to flex when logged in */
+    justify-self: center;       /* center in the middle column of the header */
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .app-nav-btn {
+    border-radius: 999px;
+    padding: 6px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #111827;          /* dark slate, not your purple */
+    background: #ffffff;
+    color: #111827;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease,
+      background 0.12s ease,
+      color 0.12s ease;
+  }
+
+  .app-nav-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.20);
+    background: #111827;
+    color: #f9fafb;
+  }
+
+  .app-nav-btn-active {
+    background: #111827;        /* bold dark color */
+    color: #f9fafb;             /* light text */
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.25);
+  }
+
+
+
+
+  .pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.18);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* --------------------------------------------------
+   * 5. GENERIC SCREEN WRAPPER (PAGE 1 / PAGE 2)
+   * -------------------------------------------------- */
+  .screen {
+    padding: 24px 16px 40px 16px;  /* small gaps so cards don’t hit edges */
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  /* Screen visibility (page switching via JS) */
+  #screen-auth {
+    display: flex;
+  }
+
+  #screen-upload {
+    display: none;
+  }
+
+  #screen-workspace {
+    display: none;
+  }
+
+  /* --------------------------------------------------
+   * 6. PAGE 0 AUTH LAYOUT (WELCOME LEFT, LOGIN RIGHT)
+   * -------------------------------------------------- */
+
+  /* Main auth screen: 2-column layout, both aligned near top */
+  #screen-auth {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 32px 48px 32px;   /* smaller top padding so content is higher */
+    display: flex;
+    align-items: flex-start;        /* both columns start at the same top line */
+    justify-content: space-between;
+    gap: 60px;
+    min-height: calc(100vh - 80px); /* fills viewport under the header */
+  }
+
+  /* LEFT COLUMN: marketing text / “welcome back” copy */
+  .auth-left {
+    flex: 1.2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-right: 20px;
+    margin: 0 !important;
+  }
+
+  .auth-kicker {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+
+  /* Big hero title on the left (not used inside the card) */
+  .auth-title {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .auth-subtitle {
+    font-size: 13px;
+    color: #4b5563;
+    max-width: 420px;
+    margin-bottom: 18px;
+  }
+
+  .auth-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .auth-pill {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.08);
+    color: #1d4ed8;
+  }
+
+  .auth-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    color: #4b5563;
+  }
+
+  .auth-feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .auth-feature-bullet {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+  /* Big "Continue" CTA button on the left side of Page 0 */
+  .auth-left-cta {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-start;  /* align left; use center if you want centered */
+  }
+
+  .auth-page0-continue-btn {
+    border-radius: 999px;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #111827;          /* dark primary */
+    color: #f9fafb;
+    box-shadow: 0 18px 35px rgba(15, 23, 42, 0.35);
+    cursor: pointer;
+  }
+
+  .auth-page0-continue-btn:hover {
+    background: #020617;
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .auth-page0-continue-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* RIGHT COLUMN: login / register / forgot card */
+  .auth-right {
+    flex: 0 0 420px;
+    max-width: 420px;
+
+    /* pin the login box toward the top-right and keep it visible on scroll */
+    align-self: flex-start;
+    position: sticky;
+    top: 24px;             /* distance from top header to top of card */
+    margin-top: 0 !important;
+  }
+
+  /* Login card itself (white box) */
+  .auth-card {
+    width: 100%;
+    border-radius: 24px;
+    padding: 24px;
+    background: #ffffff;
+    box-shadow: 0 26px 60px rgba(15, 23, 42, 0.20);
+    border: 1px solid rgba(148, 163, 184, 0.32);
+  }
+
+  /* Tabs at top of the card: Login / Register / Forgot */
+  .auth-tabs {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 3px;
+    background: #e5e7eb;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+
+  .auth-tab {
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #4b5563;
+  }
+
+  .auth-tab-active {
+    background: #111827;
+    color: #f9fafb;
+  }
+
+  /* Card title and supporting text (inside the right card) */
+  .auth-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .auth-card-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 14px;
+  }
+
+  /* Google + Guest buttons inside the card */
+  .auth-btn-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .auth-btn-google {
+    width: 100%;
+    border-radius: 999px;
+    border: none;
+    padding: 9px 12px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #111827;
+    color: #f9fafb;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.4);
+    cursor: pointer;
+  }
+
+  .auth-google-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #111827;
+  }
+
+  .auth-btn-guest {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px dashed rgba(148, 163, 184, 0.9);
+    padding: 8px 12px;
+    font-size: 12px;
+    background: #f9fafb;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  /* Divider line "or continue with email" */
+  .auth-divider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  .auth-divider-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(209, 213, 219, 0.9);
+  }
+
+  .auth-divider-text {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  /* Email/password form fields */
+  .auth-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .auth-field-label {
+    font-size: 11px;
+    color: #4b5563;
+  }
+
+  .auth-input {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.9);
+    padding: 8px 12px;
+    font-size: 13px;
+    background: #020617;
+    color: #e5e7eb;
+  }
+
+  .auth-input::placeholder {
+    color: #6b7280;
+  }
+
+
+  /* Password field + eye icon row */
+  .auth-password-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Give input some space on the right for the eye */
+  .auth-password-row .auth-input {
+    padding-right: 36px;
+  }
+
+  /* Eye icon button on the right inside the input */
+  .auth-eye-btn {
+    position: absolute;
+    right: 10px;
+    height: 100%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    font-size: 14px;
+    color: #9ca3af;
+    padding: 0;
+  }
+
+  .auth-eye-btn:hover {
+    color: #4b5563;
+  }
+
+  /* Primary submit button inside the auth card */
+  .auth-primary-btn {
+    width: 100%;
+    border-radius: 999px;
+    border: none;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #2563eb;
+    color: #f9fafb;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  /* Small helpers under the button (remember me / forgot password) */
+  .auth-secondary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    font-size: 11px;
+  }
+
+  .auth-link {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 11px;
+    color: #2563eb;
+    cursor: pointer;
+  }
+
+  .auth-note {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 10px;
+  }
+
+  /* Inner view switching (login / register / forgot) */
+  .auth-view {
+    display: none;
+  }
+
+  .auth-view-active {
+    display: block;
+  }
+
+  /* --------------------------------------------------
+   * 7. UPLOAD SCREEN / GENERIC CARDS
+   * -------------------------------------------------- */
+
+  .hero-card {
+    background: radial-gradient(circle at top left, #eef2ff, #ffffff);
+    border-radius: 22px;
+    padding: 24px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 24px;
+  }
+
+  .hero-tagline {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .grid-upload {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr);
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 18px 18px 16px 18px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .card-header h3 {
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge-step {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .muted {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .field-label {
+    font-weight: 500;
+  }
+
+  .file-input-row {
+    border-radius: 12px;
+    border: 1px dashed rgba(148, 163, 184, 0.7);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: linear-gradient(to right, #f9fafb, #eef2ff);
+  }
+
+  .file-input-row input[type="file"] {
+    font-size: 12px;
+  }
+
+  .file-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .jd-textarea {
+    width: 100%;
+    min-height: 220px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.4;
+    background: #f9fafb;
+  }
+
+  .actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .llm-provider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    max-width: 360px;
+  }
+
+  .llm-provider-label {
+    color: #6b7280;
+  }
+
+  .llm-provider-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .llm-provider-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    cursor: pointer;
+    font-size: 11px;
+    user-select: none;
+    background: #f9fafb;
+  }
+
+  .llm-provider-option input {
+    margin: 0;
+  }
+
+  .llm-provider-option span {
+    display: inline-block;
+  }
+
+  .llm-provider-option input:checked + span {
+    font-weight: 600;
+  }
+
+  .status-bar {
+    margin-top: 8px;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: rgba(209, 213, 219, 0.3);
+    color: #374151;
+    white-space: pre-wrap;
+  }
+
+  .llm-toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #111827;
+    color: #f9fafb;
+    font-size: 12px;
+    box-shadow: var(--shadow-soft);
+    display: none;
+    z-index: 9999;
+  }
+
+  .status-error {
+    background: rgba(254, 226, 226, 0.95);
+    color: var(--danger);
+    border: 1px solid rgba(248, 113, 113, 0.6);
+  }
+
+  /* --------------------------------------------------
+   * 8. FULL-SCREEN OVERLAY (LOADING / WARNINGS)
+   * -------------------------------------------------- */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+      circle at top left,
+      rgba(199, 210, 254, 0.9),
+      rgba(15, 23, 42, 0.92)
+    );
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    color: white;
+  }
+
+  .overlay-inner {
+    max-width: 420px;
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 20px;
+    padding: 24px 22px 20px 22px;
+    box-shadow: 0 26px 45px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(129, 140, 248, 0.6);
+  }
+
+  .overlay-title {
+    font-size: 17px;
+    margin-bottom: 4px;
+  }
+
+  .overlay-sub {
+    font-size: 12px;
+    color: #e5e7eb;
+    margin-bottom: 10px;
+  }
+
+  .overlay-actions {
+    margin-top: 10px;
+    text-align: right;
+  }
+
+  #overlayCloseBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(248, 113, 113, 0.14);
+    color: #fecaca;
+    cursor: pointer;
+  }
+
+  #overlayCloseBtn:hover {
+    background: rgba(248, 113, 113, 0.28);
+  }
+
+  .loading-dots {
+    display: inline-block;
+    width: 32px;
+    text-align: center;
+  }
+
+  .loading-dots span {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin: 0 2px;
+    border-radius: 50%;
+    background: #a5b4fc;
+    animation: bounce 1.1s infinite ease-in-out both;
+  }
+
+  .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+  .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+
+  .overlay-list {
+    margin: 10px 0 0 0;
+    padding-left: 18px;
+    font-size: 12px;
+    color: #e5e7eb;
+  }
+
+  /* --------------------------------------------------
+   * 9. WORKSPACE LAYOUT (ATS SIDEBAR + EDITOR + PREVIEW)
+   * -------------------------------------------------- */
+
+  .workspace-shell {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  /* LEFT: ATS sidebar rail */
+  .sidebar {
+    width: 260px;
+    min-width: 240px;
+    max-width: 280px;
+    align-self: stretch;
+    position: relative;
+    margin-left: 0;
+
+    padding-left: 16px;
+    padding-top: 8px;
+    padding-bottom: 12px;
+
+    background: linear-gradient(to bottom, #ffffff, #eef2ff);
+    min-height: calc(100vh - 84px);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .sidebar-card {
+    position: sticky;
+    top: 84px;  /* sits below the header */
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 18px 16px 14px 16px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex-shrink: 0;
+  }
+
+  /* Collapsed rail */
+  .sidebar.collapsed {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+  }
+
+  .sidebar-top-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-collapse-btn {
+    border-radius: 999px;
+    padding: 4px 6px;
+    font-size: 12px;
+    background: #e5e7eb;
+    color: #111827;
+    border: none;
+    cursor: pointer;
+  }
+
+  .sidebar-collapse-btn:hover {
+    background: #d1d5db;
+  }
+
+  .sidebar-tabs {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-tab {
+    flex: 1;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: none;
+    background: #e5e7eb;
+    color: #374151;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .sidebar-tab-active {
+    background: #4f46e5;
+    color: #ffffff;
+  }
+
+  .sidebar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sidebar.collapsed .sidebar-tabs,
+  .sidebar.collapsed .sidebar-content {
+    display: none;
+  }
+
+  .sidebar.collapsed .sidebar-card {
+    align-items: center;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-header h3 {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sidebar-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4f46e5;
+  }
+
+  .ats-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 10px solid #e5e7eb;
+    border-top-color: var(--accent);
+    border-right-color: var(--accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto 2px auto;
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25);
+  }
+
+  .ats-circle-number {
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  .ats-circle-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .ats-subtext {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .sidebar-section {
+    border-radius: 14px;
+    padding: 8px 8px 6px 8px;
+    background: #f9fafb;
+    border: 1px dashed rgba(148, 163, 184, 0.6);
+    font-size: 12px;
+  }
+
+  .sidebar-section h4 {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .sidebar-buttons button {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .sidebar-keywords {
+    max-height: 240px;
+    overflow: auto;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: #f9fafb;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+  }
+
+  .sidebar-keywords ul {
+    margin: 0 0 6px 0;
+    padding-left: 14px;
+    font-size: 11px;
+    list-style-type: disc;
+  }
+
+  .keyword-title {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 2px;
+  }
+
+  .keyword-item.keyword-matched {
+    color: #15803d;   /* green for matched */
+  }
+
+  .keyword-item.keyword-missing {
+    color: #b91c1c;   /* red for missing */
+  }
+
+  /* RIGHT SIDE OF WORKSPACE: editor + preview + resizer */
+
+  .workspace-main {
+    flex: 1;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    box-sizing: border-box;
+  }
+
+  .editor-column {
+    flex: 0 0 58%;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .preview-column {
+    width: 44%;
+    min-width: 340px;
+    max-width: 560px;
+    position: sticky;
+    top: 84px;
+    padding-right: 16px;
+    box-sizing: border-box;
+  }
+
+  .column-resizer {
+    flex: 0 0 8px;
+    cursor: col-resize;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+
+  .column-resizer::before {
+    content: "";
+    width: 2px;
+    height: 40px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.9);
+  }
+
+  body.resizing-horizontal,
+  body.resizing-horizontal * {
+    cursor: col-resize !important;
+    user-select: none !important;
+  }
+
+  .preview-card {
+    background: white;
+    border-radius: 18px;
+    padding: 22px 22px 20px 22px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(148, 163, 184, 0.33);
+    max-height: calc(100vh - 110px);
+    overflow: auto;
+    position: relative;
+  }
+
+  .preview-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  .preview-top-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+   .preview-mode-tabs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .preview-mode-btn {
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    border: 1px solid var(--border-soft);
+    background: #f9fafb;
+    cursor: pointer;
+    white-space: nowrap;
+    color: #374151; /* always visible text */
+  }
+
+  .preview-mode-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    border-color: var(--accent);
+  }
+
+  .cover-letter-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .cover-letter-generate-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: none;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .cover-letter-generate-btn:hover {
+    background: var(--accent-dark);
+  }
+  .cover-letter-download-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-soft);
+    background: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    margin-left: 6px;
+  }
+
+  .cover-letter-download-btn:hover {
+    background: #f3f4f6;
+  }
+
+  .cover-letter-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex: 1;
+    text-align: right;
+  }
+
+  .cover-letter-content {
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    padding: 10px;
+    background: #f9fafb;
+    min-height: 120px;
+  }
+ 
+
+  .preview-download-btn {
+    font-size: 12px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    background: var(--accent-dark);
+    color: #ffffff;
+    box-shadow: 0 8px 18px rgba(50, 50, 176, 0.35);
+    border: none;
+    white-space: nowrap;
+  }
+
+  .preview-download-btn:hover {
+    background: #22227f;
+    box-shadow: 0 10px 22px rgba(50, 50, 176, 0.45);
+  }
+
+  .preview-header-name {
+    font-size: 18px;
+    margin-bottom: 2px;
+    font-weight: 700;
+  }
+
+  .preview-header-title {
+    font-size: 13px;
+    color: var(--accent-dark);
+    margin-bottom: 4px;
+  }
+
+  .preview-header-contact {
+    font-size: 11px;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(209, 213, 219, 0.8);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+
+  .preview-section {
+    margin-bottom: 10px;
+  }
+
+  .preview-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #4b5563;
+    border-bottom: 1px solid rgba(209, 213, 219, 0.9);
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+  }
+
+  .preview-section ul {
+    margin: 0 0 0 16px;
+    padding-left: 10px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .preview-section li {
+    margin-bottom: 3px;
+  }
+
+  .preview-skills-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .preview-skills-table td {
+    vertical-align: top;
+    padding: 2px 4px 2px 0;
+  }
+
+  .preview-skills-table td:first-child {
+    font-weight: 600;
+    width: 32%;
+    padding-right: 8px;
+  }
+
+  .preview-job-header {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    margin-top: 4px;
+  }
+
+  .preview-job-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  /* --------------------------------------------------
+   * 10. EDITOR CARDS / JOB BLOCKS / TEXTAREAS
+   * -------------------------------------------------- */
+
+  .editor-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 14px 14px 10px 14px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+  }
+
+  .editor-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .editor-card-header > div {
+  width: 100%;
+}
+
+  .editor-card-header h3 {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .editor-card-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .section-label {
+    color: #4f46e5;
+    font-weight: 500;
+  }
+
+  .tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .field-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .field-row input[type="text"],
+  .field-row textarea {
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    padding: 6px 8px;
+    font-size: 12px;
+    background: #f9fafb;
+  }
+
+  .field-row textarea {
+    min-height: 46px;
+  }
+
+  .bullet-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #111827;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+
+  /* In job-card responsibilities, we always show the bullet dot and use tighter gap */
+  .job-card .bullet-dot {
+    display: block;
+  }
+
+  .job-card .field-row {
+    gap: 6px;
+  }
+
+  .responsibilities-label {
+    display: inline-block;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #e0e7ff;
+  }
+
+  .tiny-btn {
+    margin-top: 4px;
+    padding: 2px 5px;
+    font-size: 10px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+  }
+
+  .tiny-btn:hover {
+    color: var(--danger);
+    background: rgba(248, 113, 113, 0.06);
+  }
+
+
+  /* Row that holds the section title + X (and optional tag) */
+.editor-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;         /* make the row span the full card width */
+  /* no need for position: relative here */
+}
+
+
+.editor-card-title-row h3 {
+  margin: 0;               /* remove default bottom margin that pushes things down */
+}
+
+ /* ===== Delete buttons (sections vs jobs) ===== */
+
+/* Base style shared by BOTH section delete X and job delete X */
+.section-delete-btn,
+.job-delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #9ca3af;              /* default light gray */
+}
+
+/* Hover for BOTH: same as you had */
+.section-delete-btn:hover,
+.job-delete-btn:hover {
+  background: rgba(248, 113, 113, 0.12);
+  color: #b91c1c;
+}
+
+/* SPECIAL: section X (Header, Summary, Experience, Skills, Education, Certs, Custom)
+   - Red, bold, slightly bigger
+   - Positioned like an exponent above the section title text
+*/
+.section-delete-btn {
+  color: #b91c1c;              /* red X even when not hovered */
+  font-weight: 700;
+  font-size: 14px;
+  padding: 0;                   /* no pill padding – makes it hug the title */
+  margin-left: 4px;
+
+  line-height: 1;
+  position: relative;
+  top: -0.35em;                 /* move above baseline = superscript effect */
+}
+
+/* Job delete X:
+   - Uses base pill style
+   - No extra positioning, stays inline in Job 1 / Job 2 cards
+*/
+.job-delete-btn {
+  /* no extra overrides: keeps the pill look from base rule */
+}
+
+
+/* ===== Section collapse (drag-down) button ===== */
+.section-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  /* make it same "chunky" feel as X */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: auto;        /* stays at the far right */
+  border-radius: 999px;
+
+  padding: 6px 10px;        /* bigger click area */
+  font-size: 18px;          /* much larger arrow */
+  line-height: 1;
+
+  color: #4b5563;           /* darker so it's visible at a glance */
+}
+
+.section-toggle-btn:hover {
+  background: rgba(148, 163, 184, 0.16);
+  color: #111827;
+}
+
+
+/* already added earlier */
+.editor-card.collapsed > :not(.editor-card-header) {
+  display: none;
+}
+
+  .add-btn-inline {
+    margin-top: 4px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4f46e5;
+    border: none;
+    cursor: pointer;
+  }
+
+  .add-btn-inline:hover {
+    background: #e0e7ff;
+  }
+
+  .skills-grid-row {
+    display: grid;
+    grid-template-columns: 0.6fr 1.4fr auto;
+    gap: 6px;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .skills-grid-row input[type="text"],
+  .skills-grid-row textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    padding: 6px 8px;
+    font-size: 12px;
+    background: #f9fafb;
+  }
+
+  .skills-grid-row textarea {
+    min-height: 46px;
+  }
+
+  .job-card {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    padding: 10px 12px 10px 12px;
+    margin-bottom: 18px;
+    background: #f9fafb;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  }
+
+  .job-card:nth-child(odd) {
+    background: #f9fafb;
+  }
+
+  .job-card:nth-child(even) {
+    background: #f3f4ff;
+  }
+
+  .job-card-header {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: linear-gradient(to right, #eef2ff, #f9fafb);
+  }
+
+  .job-card-header > div:first-child {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .job-index-pill {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.12);
+    color: #312e81;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .job-header-input {
+    width: 100%;
+    border-radius: 12px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: linear-gradient(to right, #eef2ff, #ffffff);
+    border: 1px solid rgba(79, 70, 229, 0.4);
+    box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.12);
+    margin-bottom: 8px;
+  }
+
+  .job-header-input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow:
+      0 0 0 1px rgba(79, 70, 229, 0.4),
+      0 0 0 4px rgba(129, 140, 248, 0.25);
+  }
+
+  .label-inline {
+    font-size: 11px;
+    color: #4f46e5;
+    font-weight: 500;
+    margin-top: 4px;
+    margin-bottom: 2px;
+  }
+
+  .simple-lines-container textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    padding: 6px 8px;
+    font-size: 12px;
+    background: #f9fafb;
+    min-height: 42px;
+    margin-bottom: 5px;
+  }
+
+  /* Smaller textareas for Role / Project / Environment */
+  .job-meta-textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    padding: 4px 8px;
+    font-size: 11px;
+    background: #f9fafb;
+    min-height: 30px;
+    resize: vertical;
+    margin-bottom: 4px;
+  }
+
+  .workspace-status {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .workspace-status.error {
+    color: var(--danger);
+  }
+
+  /* --------------------------------------------------
+   * 11. RESPONSIVE TWEAKS
+   * -------------------------------------------------- */
+
+  /* Medium screens: stack workspace sections */
+  @media (max-width: 1100px) {
+    .workspace-shell {
+      flex-direction: column;
+    }
+
+    .sidebar {
+      width: 100%;
+      max-width: none;
+    }
+
+    .sidebar-card {
+      position: static;
+    }
+
+    .workspace-main {
+      flex-direction: column;
+    }
+
+    .preview-column {
+      position: static;
+      width: 100%;
+      max-width: none;
+    }
+
+    .preview-card {
+      max-height: none;
+    }
+  }
+
+  /* Smaller screens: auth and upload go single-column */
+  @media (max-width: 960px) {
+    #screen-auth {
+      flex-direction: column;
+      padding-inline: 18px;
+    }
+
+    .auth-right {
+      max-width: none;
+      position: static;   /* no sticky on mobile; let it scroll normally */
+      top: auto;
+    }
+
+    .auth-left {
+      padding-right: 0;
+    }
+  }
+
+  @media (max-width: 850px) {
+    .grid-upload {
+      grid-template-columns: 1fr;
+    }
+
+    .screen {
+      padding-inline: 14px;
+    }
+
+    .app-header {
+      padding-inline: 18px;
+    }
+  }
+</style>
+
+</head>
+<body>
+    <header class="app-header">
+    <div class="brand" id="brandHome">
+      <div class="brand-mark">JD</div>
+      <div class="brand-title">
+        
+        <span>Aligner</span>
+      </div>
+    </div>
+      <div class="app-header-right">
+    <!-- Center: page nav -->
+  <nav class="app-nav" id="appNav">
+    <button
+      type="button"
+      class="app-nav-btn app-nav-btn-active"
+      id="navUploadBtn"
+    >
+      Page 1
+    </button>
+    <button
+      type="button"
+      class="app-nav-btn"
+      id="navWorkspaceBtn"
+    >
+      Page 2
+    </button>
+  </nav>
+
+    <span id="headerStatusText"></span>
+
+    <button id="logoutBtn" class="ghost" type="button">
+      Sign out
+    </button>
+  </div>
+
+  </header>
+
+
+  <!-- Overlay -->
+  <div id="overlay">
+    <div class="overlay-inner" id="overlayInner">
+      <div class="overlay-title" id="overlayTitle">Working on your resume…</div>
+      <div class="overlay-sub" id="overlaySub">
+        This usually takes a few seconds.
+      </div>
+
+      <!-- Spinner block (for loading mode) -->
+      <div id="overlaySpinnerBlock" style="margin-top:4px;margin-bottom:6px;">
+        <span class="loading-dots">
+          <span></span><span></span><span></span>
+        </span>
+      </div>
+
+      <!-- Bullet list (for loading mode) -->
+      <ul class="overlay-list" id="overlayList">
+        <li>Analyzing job description keywords</li>
+        <li>Parsing resume layout & sections</li>
+        <li>Running ATS-style keyword match</li>
+        <li>Preparing editor & preview workspace</li>
+      </ul>
+
+      <!-- Close button (shown only in error mode) -->
+      <div class="overlay-actions">
+        <button id="overlayCloseBtn" type="button" style="display:none;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 0: Auth / landing -->
+  <main id="screen-auth" class="screen">
+    <!-- Left: marketing / product story -->
+    <section class="auth-left">
+      <div class="auth-kicker">JD|Aligner</div>
+      <div class="auth-title">Welcome back.</div>
+      <div class="auth-subtitle">
+        Upload a base resume once, paste any job description, and let the app
+        rewrite and optimize your resume for ATS and real recruiters.
+      </div>
+
+      <div class="auth-pill-row">
+        <span class="auth-pill">ATS keyword alignment</span>
+        <span class="auth-pill">LLM-powered rewrites</span>
+        <span class="auth-pill">DOCX preview & download</span>
+      </div>
+
+      <ul class="auth-feature-list">
+        <li>
+          <span class="auth-feature-bullet">●</span>
+          <span>Keep multiple rewrites for different roles (.NET, EDI, Cloud, etc.).</span>
+        </li>
+        <li>
+          <span class="auth-feature-bullet">●</span>
+          <span>See what keywords you’re missing before you apply.</span>
+        </li>
+        <li>
+          <span class="auth-feature-bullet">●</span>
+          <span>Export a clean DOCX that keeps your template formatting.</span>
+        </li>
+      </ul>
+
+      <!-- BIG CENTER CONTINUE BUTTON (fake for now, goes to Page 1) -->
+      <div class="auth-left-cta">
+        <button
+          type="button"
+          id="page0ContinueBtn"
+          class="auth-page0-continue-btn"
+        >
+          Continue as Guest to resume workspace →
+        </button>
+      </div>
+    </section>
+
+   <section class="auth-right">
+  <div class="auth-card">
+    <!-- Tabs: wired to switch views -->
+    <div class="auth-tabs">
+      <button
+        type="button"
+        class="auth-tab auth-tab-active"
+        id="authTabLogin"
+      >
+        Login
+      </button>
+      <button
+        type="button"
+        class="auth-tab"
+        id="authTabRegister"
+      >
+        Register
+      </button>
+      <button
+        type="button"
+        class="auth-tab"
+        id="authTabForgot"
+      >
+        Forgot
+      </button>
+    </div>
+
+    <!-- Title/subtitle text controlled by setAuthView() -->
+    <div class="auth-card-title" id="authCardTitle">
+      Sign in to continue
+    </div>
+    <div class="auth-card-subtitle" id="authCardSubtitle">
+      Login to manage your resumes, job descriptions, and AI rewrites in one place.
+    </div>
+
+  <!-- ================= LOGIN VIEW ================= -->
+<div id="authViewLogin" class="auth-view auth-view-active">
+  <form id="authLoginForm">
+    <div class="auth-field-group">
+      <label for="authEmailLogin" class="auth-field-label">Email</label>
+      <input
+        id="authEmailLogin"
+        type="email"
+        class="auth-input"
+        placeholder="you@example.com"
+      />
+    </div>
+
+    <div class="auth-field-group">
+      <label for="authPasswordLogin" class="auth-field-label">Password</label>
+
+      <!-- Password + eye icon wrapper -->
+      <div class="auth-password-row">
+        <input
+          id="authPasswordLogin"
+          type="password"
+          class="auth-input"
+          placeholder="••••••••"
+        />
+        <button
+          id="togglePasswordLogin"
+          type="button"
+          class="auth-eye-btn"
+          aria-label="Show password"
+        >
+          👁
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="auth-primary-btn">
+      Login
+    </button>
+
+    <div class="auth-secondary-row">
+      <button
+        type="button"
+        class="auth-link"
+        id="authLinkGoRegister"
+      >
+        Create a new account
+      </button>
+      <button
+        type="button"
+        class="auth-link"
+        id="authLinkGoForgot"
+      >
+        Forgot password?
+      </button>
+    </div>
+
+    <div class="auth-note">
+      Use your account to keep multiple resumes and JD rewrites in sync.
+    </div>
+  </form>
+</div>
+
+
+<!-- ================= REGISTER VIEW ================= -->
+<div id="authViewRegister" class="auth-view">
+  <form id="authRegisterForm">
+    <div class="auth-field-group">
+      <label for="authNameRegister" class="auth-field-label">Full name</label>
+      <input
+        id="authNameRegister"
+        type="text"
+        class="auth-input"
+        placeholder="Your name"
+      />
+    </div>
+
+    <div class="auth-field-group">
+      <label for="authEmailRegister" class="auth-field-label">Email</label>
+      <input
+        id="authEmailRegister"
+        type="email"
+        class="auth-input"
+        placeholder="you@example.com"
+      />
+    </div>
+
+    <div class="auth-field-group">
+      <label for="authPasswordRegister" class="auth-field-label">Password</label>
+      <div class="auth-password-row">
+        <input
+          id="authPasswordRegister"
+          type="password"
+          class="auth-input"
+          placeholder="••••••••"
+        />
+        <button
+          id="togglePasswordRegister"
+          type="button"
+          class="auth-eye-btn"
+          aria-label="Show password"
+        >
+          👁
+        </button>
+      </div>
+    </div>
+
+    <div class="auth-field-group">
+      <label for="authPasswordConfirm" class="auth-field-label">
+        Confirm password
+      </label>
+      <div class="auth-password-row">
+        <input
+          id="authPasswordConfirm"
+          type="password"
+          class="auth-input"
+          placeholder="••••••••"
+        />
+        <button
+          id="togglePasswordConfirm"
+          type="button"
+          class="auth-eye-btn"
+          aria-label="Show password"
+        >
+          👁
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="auth-primary-btn">
+      Create account
+    </button>
+
+    <div class="auth-secondary-row">
+      <button
+        type="button"
+        class="auth-link"
+        id="authLinkBackToLoginFromRegister"
+      >
+        Already have an account? Login
+      </button>
+      <span class="auth-note">
+        Create a free account to save and track your rewrites.
+      </span>
+    </div>
+  </form>
+</div>
+
+
+<!-- ================= FORGOT VIEW ================= -->
+<div id="authViewForgot" class="auth-view">
+  <div class="auth-field-group">
+    <label for="authEmailForgot" class="auth-field-label">
+      Email for reset link
+    </label>
+    <input
+      id="authEmailForgot"
+      type="email"
+      class="auth-input"
+      placeholder="you@example.com"
+    />
+  </div>
+
+  <button
+    id="authForgotSendBtn"
+    type="button"
+    class="auth-primary-btn"
+  >
+    Send reset link
+  </button>
+
+  <div class="auth-secondary-row">
+    <button
+      type="button"
+      class="auth-link"
+      id="authLinkBackToLoginFromForgot"
+    >
+      Back to login
+    </button>
+    <span class="auth-note">
+      We’ll email you a link if this address is registered.
+    </span>
+  </div>
+</div>
+
+
+
+    <!-- Divider between email form (above) and alt sign-in (below) -->
+    <div class="auth-divider-row">
+      <div class="auth-divider-line"></div>
+      <div class="auth-divider-text">or continue with</div>
+      <div class="auth-divider-line"></div>
+    </div>
+
+    <!-- Google + Guest now at the bottom for ALL views -->
+    <div class="auth-btn-row">
+      <button id="googleSignInBtn" type="button" class="auth-btn-google">
+        <span class="auth-google-icon">G</span>
+        <span>Continue with Google</span>
+      </button>
+
+      <button id="skipAuthBtn" type="button" class="auth-btn-guest">
+        Continue as guest
+      </button>
+    </div>
+
+    <div class="auth-note">
+      Limited features in guest mode – rewrites won’t be saved between sessions.
+    </div>
+  </div>
+</section>
+
+  </main>
+
+ 
+
+  <!-- Screen 1: upload + JD -->
+  <main id="screen-upload" class="screen">
+    <section class="hero-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div>
+          <h1>Paste a JD. Upload a resume. Get a tailored version.</h1>
+          <p class="hero-tagline">
+            Step 1 – We’ll parse your DOCX, read the JD, and run an ATS-style scan before you start editing.
+          </p>
+        </div>
+        <div class="pill" style="background:#eef2ff;color:#4f46e5;">
+          <span>⚙️</span><span>Built for Speed</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-upload">
+      <!-- Upload card -->
+      <div class="card">
+        <div class="card-header">
+          <h3><span class="badge-step">1</span> Upload your resume (DOCX)</h3>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Resume file</div>
+          <div class="file-input-row">
+            <div>
+              <div style="font-size:13px;font-weight:500;">Choose a .docx resume</div>
+              <div class="file-hint">Your formatting stays in Word; the editor only rewrites the content.</div>
+            </div>
+            <input id="resumeFileInput" type="file" accept=".docx" />
+          </div>
+        </div>
+        <div class="muted">
+          Tip: Use one of your base templates (EDI, .NET, or Networking). Unknown templates still work; they just rely more on PDF layout.
+        </div>
+      </div>
+
+      <!-- JD card -->
+      <div class="card">
+        <div class="card-header">
+          <h3><span class="badge-step">2</span> Paste the Job Description</h3>
+        </div>
+        <textarea id="jdBox" class="jd-textarea" placeholder="Paste the full JD here – responsibilities, requirements, tech stack, domain…"></textarea>
+
+        <div class="actions-row">
+          <div class="muted">
+            We’ll auto-extract ATS keywords, detect role (Data Engineer, .NET dev, etc.), and align your bullets.
+          </div>
+
+         <!-- <div class="llm-provider-group">
+            <div class="llm-provider-label">
+              Choose which AI engines to use for rewrites & ATS (uncheck ChatGPT to avoid using the paid API):
+            </div>
+            <div class="llm-provider-badges">
+              <label class="llm-provider-option">
+                <input type="checkbox" id="llmChatGPT" checked />
+                <span>ChatGPT</span>
+              </label>
+              <label class="llm-provider-option">
+                <input type="checkbox" id="llmGemini" />
+                <span>Gemini</span>
+              </label>
+              <label class="llm-provider-option">
+                <input type="checkbox" id="llmPerplexity" />
+                <span>Perplexity</span>
+              </label>
+            </div>
+          </div>-->
+
+          <div style="display:flex; gap:8px;">
+            <button id="startBtn">
+              Continue to editor →
+            </button>
+
+            <!-- DEV-ONLY: skip upload & JD for UI testing 
+            <button id="devSkipBtn" class="secondary" type="button" title="DEV: Jump straight to editor with fake resume">
+              DEV: Skip to editor
+            </button>
+          </div>
+        </div>-->
+
+
+        <div id="uploadStatus" class="status-bar" style="margin-top:10px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Screen 2: workspace -->
+  <main id="screen-workspace" class="screen">
+    <div class="workspace-shell">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-card">
+          <!-- Collapse / expand button always visible -->
+          <div class="sidebar-top-row">
+            <button
+              id="sidebarCollapseBtn"
+              type="button"
+              class="sidebar-collapse-btn"
+              title="Collapse ATS sidebar"
+            >
+              ⮜
+            </button>
+          </div>
+
+          <!-- Two-column style as TABS: ATS | Rewrite -->
+          <div class="sidebar-tabs">
+            <button
+              type="button"
+              id="sidebarTabAts"
+              class="sidebar-tab sidebar-tab-active"
+            >
+              ATS
+            </button>
+            <button
+              type="button"
+              id="sidebarTabRewrite"
+              class="sidebar-tab"
+            >
+              Rewrite
+            </button>
+          </div>
+
+          <!-- Everything that hides when sidebar is collapsed -->
+          <div class="sidebar-content">
+            <!-- ATS PANEL -->
+            <div id="sidebarPanelAts">
+              <div class="sidebar-header">
+                <h3>ATS Overview</h3>
+                
+              </div>
+
+              <div class="ats-circle">
+                <div id="atsCircleNumber" class="ats-circle-number">--</div>
+                <div class="ats-circle-label">Overall</div>
+              </div>
+              <div class="ats-subtext" id="atsCircleSub">
+                Original vs JD match will appear here.
+              </div>
+
+              <div class="sidebar-section">
+                <h4>ATS view</h4>
+                <div style="display:flex;gap:6px;margin-bottom:6px;">
+                  <button
+                    id="btnAtsOriginal"
+                    class="secondary"
+                    style="flex:1;justify-content:center;font-size:11px;"
+                  >
+                    ATS: original
+                  </button>
+                  <button
+                    id="btnAtsUpdated"
+                    class="secondary"
+                    style="flex:1;justify-content:center;font-size:11px;"
+                  >
+                    ATS: updated
+                  </button>
+                </div>
+                <div class="ats-subtext" style="font-size:11px;">
+                  Switch between original and updated resume for ATS keywords.
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <h4>Keywords snapshot</h4>
+                <div class="sidebar-keywords">
+                  <ul id="sidebarMatchedList"></ul>
+                  <ul id="sidebarMissingList"></ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- REWRITE PANEL -->
+            <div id="sidebarPanelRewrite" style="display:none;">
+              <div class="sidebar-section">
+                <h4>Rewrite controls</h4>
+                <div class="sidebar-buttons">
+                  <button id="btnRewriteSummary" class="secondary">Rewrite summary</button>
+                  <button id="btnRewriteSkills" class="secondary">Rewrite skills</button>
+                  <button id="btnRewriteExperience" class="secondary">Rewrite experience</button>
+                  <button id="btnRewriteAll">Rewrite everything</button>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <h4>ATS options for rewrite</h4>
+                <div class="checkbox-row" style="margin-bottom:4px;">
+                  <input type="checkbox" id="includeAtsInRewrite" />
+                  <label for="includeAtsInRewrite" style="font-size:11px;">
+                    Include ATS keywords in rewrite
+                  </label>
+                </div>
+                <div class="checkbox-row" style="margin-bottom:6px;">
+                  <input type="checkbox" id="forceMissingKeywords" />
+                  <label for="forceMissingKeywords" style="font-size:11px;">
+                    Force missing &amp; recommended keywords (aggressive)
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      </aside>
+                 <!-- Main columns -->
+<section class="workspace-main">
+  <!-- Editor column -->
+  <div class="editor-column" id="editorColumn">
+
+    <!-- 🔹 NEW WRAPPER: all editor cards live inside here -->
+    <div id="editorCardsContainer">
+
+      <!-- Header -->
+      <div class="editor-card" data-section="header">
+        <div class="editor-card-header">
+          <div>
+            <div class="editor-card-title-row">
+              <h3>Header</h3>
+
+              <!-- Red X for whole Header section -->
+              <button
+                type="button"
+                class="section-delete-btn"
+                id="deleteHeaderSectionBtn"
+                title="Delete entire Header section"
+              >
+                ✕
+              </button>
+              <button
+                type="button"
+                class="section-toggle-btn"
+                title="Collapse / expand this section"
+              >
+                ▾
+              </button>
+            </div>
+            <div class="editor-card-subtitle">
+              Name, title, and contact lines at the very top of your resume.
+            </div>
+            <span class="tag">Name / Title / Contact</span>
+          </div>
+        </div>
+        <div id="headerEditor"></div>
+      </div>
+
+      <!-- Summary -->
+      <div class="editor-card" data-section="summary">
+        <div class="editor-card-header">
+          <div>
+            <div class="editor-card-title-row">
+              <h3>Summary</h3>
+
+              <!-- Red X for whole Summary section -->
+              <button
+                type="button"
+                class="section-delete-btn"
+                id="deleteSummarySectionBtn"
+                title="Delete entire Summary section"
+              >
+                ✕
+              </button>
+              <button
+                type="button"
+                class="section-toggle-btn"
+                title="Collapse / expand this section"
+              >
+                ▾
+              </button>
+            </div>
+            <div class="editor-card-subtitle">
+              Edit each bullet directly; right preview updates as you type.
+            </div>
+          </div>
+        </div>
+        <div id="summaryEditor"></div>
+      </div>
+
+      <!-- Skills -->
+      <div class="editor-card" data-section="skills">
+        <div class="editor-card-header">
+          <div>
+            <div class="editor-card-title-row">
+              <h3>Skills</h3>
+
+              <!-- Red X for whole Skills section -->
+              <button
+                type="button"
+                class="section-delete-btn"
+                id="deleteSkillsSectionBtn"
+                title="Delete entire Skills section"
+              >
+                ✕
+              </button>
+              <button
+                type="button"
+                class="section-toggle-btn"
+                title="Collapse / expand this section"
+              >
+                ▾
+              </button>
+            </div>
+            <div class="editor-card-subtitle">
+              Each row is a heading + list of tools (like “Programming Languages: C#, Java…”).
+            </div>
+          </div>
+        </div>
+        <div id="skillsEditor"></div>
+      </div>
+
+      <!-- Experience -->
+      <div class="editor-card" data-section="experience">
+        <div class="editor-card-header">
+          <div>
+            <div class="editor-card-title-row">
+              <h3>Experience</h3>
+
+              <!-- Red X for whole Experience section -->
+              <button
+                type="button"
+                class="section-delete-btn"
+                id="deleteExperienceSectionBtn"
+                title="Delete entire Experience section"
+              >
+                ✕
+              </button>
+              <button
+                type="button"
+                class="section-toggle-btn"
+                title="Collapse / expand this section"
+              >
+                ▾
+              </button>
+            </div>
+            <div class="editor-card-subtitle">
+              Headers, bullets, and optional Environment / Role / Project Description – only shown if present in your template.
+            </div>
+          </div>
+        </div>
+        <div id="experienceEditor"></div>
+      </div>
+
+      <!-- Education -->
+      <div class="editor-card" data-section="education">
+        <div class="editor-card-header">
+          <div class="editor-card-title-row">
+            <h3>Education</h3>
+
+            <!-- Red X for whole Education section -->
+            <button
+              type="button"
+              class="section-delete-btn"
+              id="deleteEducationSectionBtn"
+              title="Delete entire Education section"
+            >
+              ✕
+            </button>
+            <button
+              type="button"
+              class="section-toggle-btn"
+              title="Collapse / expand this section"
+            >
+              ▾
+            </button>
+          </div>
+        </div>
+        <div id="educationEditor" class="simple-lines-container"></div>
+      </div>
+
+      <!-- Certifications -->
+      <div class="editor-card" data-section="certifications">
+        <div class="editor-card-header">
+          <div class="editor-card-title-row">
+            <h3>Certifications</h3>
+
+            <!-- Red X for whole Certifications section -->
+            <button
+              type="button"
+              class="section-delete-btn"
+              id="deleteCertsSectionBtn"
+              title="Delete entire Certifications section"
+            >
+              ✕
+            </button>
+            <button
+              type="button"
+              class="section-toggle-btn"
+              title="Collapse / expand this section"
+            >
+              ▾
+            </button>
+          </div>
+        </div>
+        <div id="certsEditor" class="simple-lines-container"></div>
+      </div>
+
+      <!-- Projects -->
+      <div class="editor-card" data-section="projects">
+        <div class="editor-card-header">
+          <div class="editor-card-title-row">
+            <h3>Projects</h3>
+
+            <!-- Red X for whole Projects section -->
+            <button
+              type="button"
+              class="section-delete-btn"
+              id="deleteProjectsSectionBtn"
+              title="Delete entire Projects section"
+            >
+              ✕
+            </button>
+            <button
+              type="button"
+              class="section-toggle-btn"
+              title="Collapse / expand this section"
+            >
+              ▾
+            </button>
+          </div>
+        </div>
+        <div id="projectsEditor" class="simple-lines-container"></div>
+      </div>
+
+      <!-- Custom sections (title + bullets) -->
+      <div class="editor-card" data-section="custom_sections">
+        <div class="editor-card-header">
+          <div>
+            <div class="editor-card-title-row">
+              <h3>Custom sections</h3>
+
+              <!-- Red X for ALL custom sections -->
+              <button
+                type="button"
+                class="section-delete-btn"
+                id="deleteCustomSectionsBtn"
+                title="Delete all custom sections"
+              >
+                ✕
+              </button>
+              <button
+                type="button"
+                class="section-toggle-btn"
+                title="Collapse / expand this section"
+              >
+                ▾
+              </button>
+            </div>
+            <div class="editor-card-subtitle">
+              Each section gets a title (e.g. Achievements) and bullet points.
+            </div>
+          </div>
+        </div>
+        <div id="customSectionsEditor"></div>
+      </div>
+
+    </div> <!-- /#editorCardsContainer -->
+
+    <div id="workspaceStatus" class="workspace-status"></div>
+  </div>
+
+  <!-- Resizer between editor and preview -->
+  <div
+    class="column-resizer"
+    id="columnResizer"
+    title="Drag to resize editor and preview"
+  ></div>
+
+  <!-- Preview column -->
+  <aside class="preview-column" id="previewColumn">
+    <div class="preview-top-row">
+      <div class="preview-mode-tabs">
+        <button
+          type="button"
+          id="btnPreviewResume"
+          class="preview-mode-btn active"
+        >
+          Resume preview
+        </button>
+        <button
+          type="button"
+          id="btnPreviewCover"
+          class="preview-mode-btn"
+        >
+          Cover letter
+        </button>
+      </div>
+
+      <button
+        id="btnDownload"
+        class="preview-download-btn"
+        type="button"
+      >
+        Download updated DOCX
+      </button>
+    </div>
+
+    <div class="preview-card">
+      <div id="previewResumePane">
+        <div id="previewRoot">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <div id="coverLetterPane" style="display: none;">
+  <div class="cover-letter-controls">
+    <div>
+      <button
+        type="button"
+        id="btnGenerateCoverLetter"
+        class="cover-letter-generate-btn"
+      >
+        Generate cover letter
+      </button>
+      <button
+        type="button"
+        id="btnDownloadCover"
+        class="cover-letter-download-btn"
+      >
+        Download cover letter
+      </button>
+    </div>
+    <div id="coverLetterStatus" class="cover-letter-status">
+      <!-- Status text -->
+    </div>
+  </div>
+  <div id="coverLetterContent" class="cover-letter-content">
+    <!-- Cover letter text will appear here -->
+  </div>
+</div>
+
+    </div>
+  </aside>
+</section>
+
+    </div>
+  </main>
+
+  <div id="llmToast" class="llm-toast"></div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    const AUTH_TOKEN_KEY = "resumeLabAuthToken";
+    const AUTH_KEY = "resumeLabAuthMode";
+    
+ // State
+    let currentModel = null;
+    let baseModel = null;
+    let currentFile = null;
+    let currentJD = "";
+    let currentPreviewMode = "resume";
+    let lastAtsResult = null;
+
+// ----- Simple screen keys for routing -----
+// Page 0 = auth, Page 1 = upload, Page 2 = workspace
+const SCREEN_AUTH = "auth";
+const SCREEN_PAGE1 = "page1";
+const SCREEN_PAGE2 = "page2";
+
+// Central helper: show exactly one of the three main screens
+function showScreen(screenName) {
+  if (screenAuth) screenAuth.style.display = "none";
+  if (screenUpload) screenUpload.style.display = "none";
+  if (screenWorkspace) screenWorkspace.style.display = "none";
+
+  if (screenName === SCREEN_PAGE1) {
+    if (screenUpload) screenUpload.style.display = "block";
+  } else if (screenName === SCREEN_PAGE2) {
+    if (screenWorkspace) screenWorkspace.style.display = "block";
+  } else {
+    // Default → Page 0 (auth)
+    if (screenAuth) screenAuth.style.display = "flex";
+  }
+}
+
+
+ async function registerUser(email, password) {
+  const resp = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ email, password }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    alert("Register failed: " + (err.detail || resp.status));
+    return null;
+  }
+  return resp.json();
+}
+
+async function loginUser(email, password) {
+  const resp = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ email, password }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    alert("Login failed: " + (err.detail || resp.status));
+    return null;
+  }
+  return resp.json();
+}
+
+    function saveAuthToken(token) {
+      if (!window.localStorage) return;
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+    }
+
+    function getAuthToken() {
+      if (!window.localStorage) return null;
+      return localStorage.getItem(AUTH_TOKEN_KEY);
+    }
+
+function getAuthHeaders(extra = {}) {
+  const token = getAuthToken();
+  const base = token ? { Authorization: `Bearer ${token}` } : {};
+  return { ...base, ...extra };
+}
+
+    
+
+function onLoginSuccess(mode) {
+  // Show Page 1 (upload) using the router
+  showScreen(SCREEN_PAGE1);
+
+  // Header + nav
+  setLogoutVisible(true);
+  setNavVisible(true);
+  setActiveNav("upload"); // Page 1 = upload
+
+  let msg = "";
+  if (mode === "google") {
+    msg = "Signed in with Google – upload a resume to start.";
+  } else if (mode === "guest") {
+    msg = "Guest mode – upload a resume to start.";
+  } else {
+    msg = "Signed in – upload a resume to start.";
+  }
+  setHeaderStatus(msg);
+
+  // Mark current history entry as "inside app, on Page 1"
+  try {
+    if (window.history && history.replaceState) {
+      history.replaceState(
+        { screen: SCREEN_PAGE1 },
+        "",
+        window.location.pathname + window.location.search
+      );
+    }
+  } catch (err) {
+    console.warn("Could not update history state on login:", err);
+  }
+}
+
+
+
+
+
+
+    // ----- Auth / Page 0 elements -----
+    const authTabLogin = document.getElementById("authTabLogin");
+    const authTabRegister = document.getElementById("authTabRegister");
+    const authTabForgot = document.getElementById("authTabForgot");
+
+    const authCardTitle = document.getElementById("authCardTitle");
+    const authCardSubtitle = document.getElementById("authCardSubtitle");
+
+    const authViewLogin = document.getElementById("authViewLogin");
+    const authViewRegister = document.getElementById("authViewRegister");
+    const authViewForgot = document.getElementById("authViewForgot");
+
+    const authLinkGoRegister = document.getElementById("authLinkGoRegister");
+    const authLinkGoForgot = document.getElementById("authLinkGoForgot");
+    const authLinkBackToLoginFromRegister = document.getElementById(
+      "authLinkBackToLoginFromRegister"
+    );
+    const authLinkBackToLoginFromForgot = document.getElementById(
+      "authLinkBackToLoginFromForgot"
+    );
+
+
+
+// Clear auth inputs helper
+function clearAuthForms(options) {
+  const cfg = Object.assign(
+    { login: true, register: true, forgot: true },
+    options || {}
+  );
+
+  if (cfg.login) {
+    const loginIds = ["authEmailLogin", "authPasswordLogin"];
+    loginIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+  }
+
+  if (cfg.register) {
+    const registerIds = [
+      "authNameRegister",
+      "authEmailRegister",
+      "authPasswordRegister",
+      "authPasswordConfirm",
+    ];
+    registerIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+  }
+
+  if (cfg.forgot) {
+    const el = document.getElementById("authEmailForgot");
+    if (el) el.value = "";
+  }
+}
+
+// Show one auth view, hide the others
+function setActiveAuthView(viewId) {
+  const views = [authViewLogin, authViewRegister, authViewForgot];
+  views.forEach((v) => {
+    if (!v) return;
+    if (v.id === viewId) {
+      v.classList.add("auth-view-active");
+    } else {
+      v.classList.remove("auth-view-active");
+    }
+  });
+}
+
+// Bottom text links: Login <-> Register <-> Forgot
+if (authLinkGoRegister) {
+  authLinkGoRegister.addEventListener("click", () => {
+    // Switch to Register; fresh register fields
+    clearAuthForms({ login: false, register: true, forgot: false });
+    setActiveAuthView("authViewRegister");
+  });
+}
+
+if (authLinkBackToLoginFromRegister) {
+  authLinkBackToLoginFromRegister.addEventListener("click", () => {
+    // Switch to Login; fresh login fields
+    clearAuthForms({ login: true, register: false, forgot: false });
+    setActiveAuthView("authViewLogin");
+  });
+}
+
+if (authLinkGoForgot) {
+  authLinkGoForgot.addEventListener("click", () => {
+    // Switch to Forgot; fresh forgot email
+    clearAuthForms({ login: false, register: false, forgot: true });
+    setActiveAuthView("authViewForgot");
+  });
+}
+
+if (authLinkBackToLoginFromForgot) {
+  authLinkBackToLoginFromForgot.addEventListener("click", () => {
+    // Back to Login; fresh login fields
+    clearAuthForms({ login: true, register: false, forgot: false });
+    setActiveAuthView("authViewLogin");
+  });
+}
+
+
+
+    // ----- Page 0 login/register form wiring -----
+const authLoginForm = document.getElementById("authLoginForm");
+const authRegisterForm = document.getElementById("authRegisterForm");
+
+if (authLoginForm) {
+  authLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById("authEmailLogin");
+    const passwordInput = document.getElementById("authPasswordLogin");
+    if (!emailInput || !passwordInput) return;
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    const data = await loginUser(email, password);
+    if (data && data.token) {
+      saveAuthToken(data.token);
+      // local login
+      if (window.localStorage) {
+        localStorage.setItem(AUTH_KEY, "local");
+      }
+      onLoginSuccess("local");
+    }
+  });
+}
+
+if (authRegisterForm) {
+  authRegisterForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById("authEmailRegister");
+    const passwordInput = document.getElementById("authPasswordRegister");
+    const confirmInput = document.getElementById("authPasswordConfirm");
+    if (!emailInput || !passwordInput || !confirmInput) return;
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirm = confirmInput.value;
+
+    if (password !== confirm) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    const data = await registerUser(email, password);
+    if (data && data.token) {
+      saveAuthToken(data.token);
+      if (window.localStorage) {
+        localStorage.setItem(AUTH_KEY, "local");
+      }
+      onLoginSuccess("local");
+    }
+  });
+}
+
+
+
+// ----- Page 0: Forgot password "Send reset link" -----
+const authForgotSendBtn = document.getElementById("authForgotSendBtn");
+const authEmailForgot = document.getElementById("authEmailForgot");
+
+if (authForgotSendBtn && authEmailForgot) {
+  authForgotSendBtn.addEventListener("click", async () => {
+    const email = authEmailForgot.value.trim();
+    if (!email) {
+      alert("Please enter your email address.");
+      return;
+    }
+
+    try {
+      const resp = await fetch(`${API_BASE}/auth/forgot`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      // We don't care about the exact response body here; backend always returns { "status": "ok" }
+      if (!resp.ok) {
+        console.error("Forgot password request failed:", resp.status);
+      }
+
+      // Show generic message (no matter if email exists or not)
+      alert("If this email is registered, a reset link has been sent.");
+
+    } catch (err) {
+      console.error("Error calling /auth/forgot:", err);
+      alert("Something went wrong. Please try again in a moment.");
+    }
+  });
+}
+
+
+/* Show/hide password for auth inputs */
+function setupPasswordToggle(inputId, toggleId) {
+  const input = document.getElementById(inputId);
+  const toggle = document.getElementById(toggleId);
+  if (!input || !toggle) return;
+
+  toggle.addEventListener("click", (event) => {
+    // Make sure clicking the eye NEVER submits the form
+    event.preventDefault();
+    event.stopPropagation();
+
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+
+    // swap emoji just for feedback
+    toggle.textContent = isHidden ? "🙈" : "👁";
+    toggle.setAttribute(
+      "aria-label",
+      isHidden ? "Hide password" : "Show password"
+    );
+  });
+}
+
+/* Wire up all three password fields on Page 0 */
+setupPasswordToggle("authPasswordLogin", "togglePasswordLogin");
+setupPasswordToggle("authPasswordRegister", "togglePasswordRegister");
+setupPasswordToggle("authPasswordConfirm", "togglePasswordConfirm");
+
+
+
+    // Upload screen elements
+    const resumeFileInput = document.getElementById("resumeFileInput");
+    const jdBox = document.getElementById("jdBox");
+    const startBtn = document.getElementById("startBtn");
+    const uploadStatus = document.getElementById("uploadStatus");
+
+    // LLM provider controls (Page 1)
+    const llmChatGPT = document.getElementById("llmChatGPT");
+    const llmGemini = document.getElementById("llmGemini");
+    const llmPerplexity = document.getElementById("llmPerplexity");
+    const llmToast = document.getElementById("llmToast");
+
+    // Screens & overlay
+    const screenAuth = document.getElementById("screen-auth");
+    const screenUpload = document.getElementById("screen-upload");
+    const screenWorkspace = document.getElementById("screen-workspace");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlaySub = document.getElementById("overlaySub");
+        const overlayInner = document.getElementById("overlayInner");
+    const overlaySpinnerBlock = document.getElementById("overlaySpinnerBlock");
+    const overlayList = document.getElementById("overlayList");
+    const overlayCloseBtn = document.getElementById("overlayCloseBtn");
+
+
+
+
+
+
+    const headerStatusText = document.getElementById("headerStatusText");
+    const logoutBtn = document.getElementById("logoutBtn");
+        function setLogoutVisible(isVisible) {
+      if (!logoutBtn) return;
+      logoutBtn.style.display = isVisible ? "inline-flex" : "none";
+    }
+
+    
+    const appNav = document.getElementById("appNav");
+    const navUploadBtn = document.getElementById("navUploadBtn");
+    const navWorkspaceBtn = document.getElementById("navWorkspaceBtn");
+
+    function setNavVisible(isVisible) {
+      if (!appNav) return;
+      appNav.style.display = isVisible ? "flex" : "none";
+    }
+
+    function setActiveNav(target) {
+      if (!navUploadBtn || !navWorkspaceBtn) return;
+
+      if (target === "workspace") {
+        navWorkspaceBtn.classList.add("app-nav-btn-active");
+        navUploadBtn.classList.remove("app-nav-btn-active");
+      } else {
+        // default = upload
+        navUploadBtn.classList.add("app-nav-btn-active");
+        navWorkspaceBtn.classList.remove("app-nav-btn-active");
+      }
+    }
+
+
+
+// On load: decide initial screen based on auth and set initial history state
+(function initAuthFromStorage() {
+  // No localStorage → always treat as logged out, Page 0
+  if (!window.localStorage) {
+    showScreen(SCREEN_AUTH);
+    setLogoutVisible(false);
+    setNavVisible(false);
+    setHeaderStatus("");
+
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(
+          { screen: SCREEN_AUTH },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not init history state (no localStorage):", err);
+    }
+    return;
+  }
+
+  const savedAuthMode = localStorage.getItem(AUTH_KEY);
+  const isAuthed =
+    savedAuthMode === "google" ||
+    savedAuthMode === "guest" ||
+    savedAuthMode === "local";
+
+  if (isAuthed) {
+    // Logged in → start on Page 1 (upload)
+    showScreen(SCREEN_PAGE1);
+    setLogoutVisible(true);
+    setNavVisible(true);
+    setActiveNav("upload");
+
+    let msg = "";
+    if (savedAuthMode === "google") {
+      msg = "Signed in with Google – upload a resume to start.";
+    } else if (savedAuthMode === "guest") {
+      msg = "Guest mode – upload a resume to start.";
+    } else {
+      msg = "Signed in – upload a resume to start.";
+    }
+    setHeaderStatus(msg);
+
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(
+          { screen: SCREEN_PAGE1 },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not init history state for authed user:", err);
+    }
+  } else {
+    // Not authenticated → Page 0 (auth)
+    showScreen(SCREEN_AUTH);
+    setLogoutVisible(false);
+    setNavVisible(false);
+    setHeaderStatus("");
+
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(
+          { screen: SCREEN_AUTH },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not init history state for logged-out user:", err);
+    }
+  }
+})();
+
+
+
+
+
+const brandHome = document.getElementById("brandHome");
+if (brandHome) {
+  brandHome.style.cursor = "pointer";
+  brandHome.addEventListener("click", () => {
+    const savedAuthMode = window.localStorage
+      ? localStorage.getItem(AUTH_KEY)
+      : null;
+
+    const isAuthed =
+      savedAuthMode === "google" ||
+      savedAuthMode === "guest" ||
+      savedAuthMode === "local";
+
+    // If NOT logged in → go to Page 0 (auth)
+    if (!isAuthed) {
+      showScreen(SCREEN_AUTH);
+      setLogoutVisible(false);
+      setNavVisible(false);
+      setHeaderStatus("");
+
+      // Mark this entry as "auth" for history
+      try {
+        if (window.history && history.replaceState) {
+          history.replaceState(
+            { screen: SCREEN_AUTH },
+            "",
+            window.location.pathname + window.location.search
+          );
+        }
+      } catch (err) {
+        console.warn("Could not reset history state on brand click (logged out):", err);
+      }
+      return;
+    }
+
+    // Logged in → go "home" = Page 1, and reset workspace state
+    goToUploadScreen(true);
+
+    let msg = "";
+    if (savedAuthMode === "google") {
+      msg = "Signed in with Google – upload a resume to start.";
+    } else if (savedAuthMode === "guest") {
+      msg = "Guest mode – upload a resume to start.";
+    } else {
+      msg = "Signed in – upload a resume to start.";
+    }
+    setHeaderStatus(msg);
+    setLogoutVisible(true);
+
+    // Mark current history entry as Page 1
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(
+          { screen: SCREEN_PAGE1 },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not reset history state on brand click (authed):", err);
+    }
+  });
+}
+
+
+
+
+
+
+// ----- Browser back/forward inside the app -----
+window.addEventListener("popstate", (event) => {
+  const state = event.state || {};
+  const screen = state.screen;
+
+  const savedAuthMode = window.localStorage
+    ? localStorage.getItem(AUTH_KEY)
+    : null;
+
+  const isAuthed =
+    savedAuthMode === "google" ||
+    savedAuthMode === "guest" ||
+    savedAuthMode === "local";
+
+  // If user is not authenticated anymore → always Page 0
+  if (!isAuthed) {
+    showScreen(SCREEN_AUTH);
+    setLogoutVisible(false);
+    setNavVisible(false);
+    setHeaderStatus("");
+    return;
+  }
+
+  if (screen === SCREEN_PAGE2 && currentModel) {
+    // Go to workspace (Page 2) only if we actually have a model
+    showScreen(SCREEN_PAGE2);
+    setLogoutVisible(true);
+    setNavVisible(true);
+    setActiveNav("workspace");
+  } else {
+    // For SCREEN_PAGE1, SCREEN_AUTH, or unknown states → default Page 1
+    showScreen(SCREEN_PAGE1);
+    setLogoutVisible(true);
+    setNavVisible(true);
+    setActiveNav("upload");
+  }
+});
+
+
+
+    // ----- Header nav: Page 1 (Upload) -----
+if (navUploadBtn) {
+  navUploadBtn.addEventListener("click", () => {
+    // Just move inside the app, no new history entry
+    showScreen(SCREEN_PAGE1);
+    setActiveNav("upload");
+    // We *don’t* touch headerStatus here to avoid overwriting
+    // any more specific messages (like errors, ATS info, etc.)
+  });
+}
+
+// ----- Header nav: Page 2 (Workspace) -----
+if (navWorkspaceBtn) {
+  navWorkspaceBtn.addEventListener("click", () => {
+    // Only let them go to workspace if we actually have a model loaded
+    if (!currentModel) {
+      alert("Parse a resume first to open the workspace.");
+      return;
+    }
+
+    showScreen(SCREEN_PAGE2);
+    setActiveNav("workspace");
+  });
+}
+   
+
+
+
+    // Workspace elements
+    const headerEditor = document.getElementById("headerEditor");
+    const summaryEditor = document.getElementById("summaryEditor");
+    const skillsEditor = document.getElementById("skillsEditor");
+    const experienceEditor = document.getElementById("experienceEditor");
+    const educationEditor = document.getElementById("educationEditor");
+    const certsEditor = document.getElementById("certsEditor");
+    const projectsEditor = document.getElementById("projectsEditor");
+    const customSectionsEditor = document.getElementById("customSectionsEditor");
+    const workspaceStatus = document.getElementById("workspaceStatus");
+    const devSkipBtn = document.getElementById("devSkipBtn");
+        // Auth screen elements (Page 0)
+    const googleSignInBtn = document.getElementById("googleSignInBtn");
+    const skipAuthBtn = document.getElementById("skipAuthBtn");
+
+/* Page 0 BIG "Continue" button: just reuse guest-continue behavior */
+const page0ContinueBtn = document.getElementById("page0ContinueBtn");
+if (page0ContinueBtn && skipAuthBtn) {
+  page0ContinueBtn.addEventListener("click", () => {
+    // trigger the same logic as "Continue as guest"
+    skipAuthBtn.click();
+  });
+}
+
+
+  // ----- Google OAuth wiring -----
+    // 1) Clicking the Google button starts the OAuth flow
+    if (googleSignInBtn) {
+      googleSignInBtn.addEventListener("click", () => {
+        // This calls /auth/google/start on your backend
+        window.location.href = `${API_BASE}/auth/google/start`;
+      });
+    }
+
+    // 2) When Google redirects back, backend sends you to:
+    //    http://localhost:<frontend-port>/index.html#token=JWT_HERE
+    //    This block reads that token and logs the user in.
+    (function handleGoogleTokenFromHash() {
+      if (!window.location || !window.location.hash) return;
+      if (!window.location.hash.startsWith("#token=")) return;
+
+      const token = window.location.hash.replace("#token=", "").trim();
+      if (!token) return;
+
+      // Save JWT from backend
+      saveAuthToken(token);
+
+      // Mark auth mode as "google" so initAuthFromStorage() can skip Page 0 later
+      if (window.localStorage) {
+        localStorage.setItem(AUTH_KEY, "google");
+      }
+
+      // Clear hash so it doesn't stick in the URL / re-trigger
+      window.location.hash = "";
+
+      // Reuse the same post-login flow as local/guest
+      onLoginSuccess("google");
+    })();
+    
+// NEW: delete buttons for each top-level section
+    const deleteHeaderSectionBtn = document.getElementById("deleteHeaderSectionBtn");
+    const deleteSkillsSectionBtn = document.getElementById("deleteSkillsSectionBtn");
+    const deleteExperienceSectionBtn = document.getElementById("deleteExperienceSectionBtn");
+    const deleteEducationSectionBtn = document.getElementById("deleteEducationSectionBtn");
+    const deleteCertsSectionBtn = document.getElementById("deleteCertsSectionBtn");
+    const deleteProjectsSectionBtn = document.getElementById("deleteProjectsSectionBtn");
+    const deleteCustomSectionsBtn = document.getElementById("deleteCustomSectionsBtn");
+
+    const deleteSummarySectionBtn = document.getElementById("deleteSummarySectionBtn");
+
+    const atsCircleNumber = document.getElementById("atsCircleNumber");
+    const atsCircleSub = document.getElementById("atsCircleSub");
+    const sidebarMatchedList = document.getElementById("sidebarMatchedList");
+    const sidebarMissingList = document.getElementById("sidebarMissingList");
+
+    const btnRewriteSummary = document.getElementById("btnRewriteSummary");
+    const btnRewriteSkills = document.getElementById("btnRewriteSkills");
+    const btnRewriteExperience = document.getElementById("btnRewriteExperience");
+    const btnRewriteAll = document.getElementById("btnRewriteAll");
+    const btnAtsOriginal = document.getElementById("btnAtsOriginal");
+    const btnAtsUpdated = document.getElementById("btnAtsUpdated");
+    const btnDownload = document.getElementById("btnDownload");
+
+    const includeAtsInRewrite = document.getElementById("includeAtsInRewrite");
+    const forceMissingKeywords = document.getElementById("forceMissingKeywords");
+
+    // Preview & cover letter
+    const previewRoot = document.getElementById("previewRoot");
+    const previewResumePane = document.getElementById("previewResumePane");
+    const coverLetterPane = document.getElementById("coverLetterPane");
+    const btnPreviewResume = document.getElementById("btnPreviewResume");
+    const btnPreviewCover = document.getElementById("btnPreviewCover");
+    const btnGenerateCoverLetter = document.getElementById("btnGenerateCoverLetter");
+    const btnDownloadCover = document.getElementById("btnDownloadCover");
+    const coverLetterContent = document.getElementById("coverLetterContent");
+    const coverLetterStatus = document.getElementById("coverLetterStatus");
+    const editorCardsContainer = document.getElementById("editorCardsContainer");
+
+        // Column resize elements
+    const editorColumn = document.getElementById("editorColumn");
+    const previewColumn = document.getElementById("previewColumn");
+    const columnResizer = document.getElementById("columnResizer");
+    const workspaceMain = document.querySelector(".workspace-main");
+
+    // Sidebar rail / tabs
+    const sidebar = document.querySelector(".sidebar");
+    const sidebarCollapseBtn = document.getElementById("sidebarCollapseBtn");
+    const sidebarTabAts = document.getElementById("sidebarTabAts");
+    const sidebarTabRewrite = document.getElementById("sidebarTabRewrite");
+    const sidebarPanelAts = document.getElementById("sidebarPanelAts");
+    const sidebarPanelRewrite = document.getElementById("sidebarPanelRewrite");
+
+   
+
+    function getSelectedLlmProviders() {
+      const providers = [];
+      if (llmChatGPT && llmChatGPT.checked) providers.push("openai");
+      if (llmGemini && llmGemini.checked) providers.push("gemini");
+      if (llmPerplexity && llmPerplexity.checked) providers.push("perplexity");
+      return providers;
+    }
+
+    function ensureAtLeastOneProvider() {
+      const providers = getSelectedLlmProviders();
+      if (providers.length === 0 && llmChatGPT) {
+        // fallback: keep ChatGPT on if user unchecks everything
+        llmChatGPT.checked = true;
+      }
+    }
+
+    if (llmChatGPT) llmChatGPT.addEventListener("change", ensureAtLeastOneProvider);
+    if (llmGemini) llmGemini.addEventListener("change", ensureAtLeastOneProvider);
+    if (llmPerplexity) llmPerplexity.addEventListener("change", ensureAtLeastOneProvider);
+    
+
+
+// ----- DEV MODE BUTTON: skip upload + JD and load fake data -----
+if (devSkipBtn) {
+  devSkipBtn.addEventListener("click", () => {
+    // No file / backend in dev mode
+    currentFile = null;
+
+    // Fake JD so rewrite buttons have something to use
+    currentJD =
+      "Dev mode JD: Senior .NET / EDI / Cloud developer with strong SQL, APIs, workers comp, and healthcare claim workflows.";
+
+    // Simple fake resume model so you can test the editors + preview
+    currentModel = {
+      header: {
+        lines: [
+          "RAHAMAN CHEGG (DEV MODE)",
+          "Senior .NET / EDI Developer",
+          "Dallas, TX | rahaman@example.com | 555-555-5555",
+        ],
+      },
+      summary: {
+        bullets: [
+          "Experienced **.NET** and **SQL Server** developer working on healthcare claims workflows.",
+          "Built and optimized EDI pipelines, B2B workflows, and batch exports for payers and providers.",
+        ],
+      },
+      skills: {
+        columns: 2,
+        rows: [
+          ["Languages", "C#, T-SQL, JavaScript"],
+          ["Cloud / DevOps", "Azure, Git, CI/CD"],
+          ["EDI / Healthcare", "X12, 837/835, workers comp"],
+          ["Tools", "Visual Studio, SSMS, Postman"],
+        ],
+      },
+      experience: [
+        {
+          header:
+            "MedRisk / StrataCare – Application Developer | Remote | 2023 – Present",
+          environment: {
+            label: "Environment:",
+            value: ".NET 6, SQL Server, Azure, B2BWF",
+          },
+          role: {
+            label: "Role:",
+            value: "Application / EDI Developer – healthcare claims workflows",
+          },
+          project_description: {
+            label: "Project Description:",
+            value:
+              "End-to-end configuration and optimization of ESIS/MBR workflows and fee exports.",
+          },
+          bullets: [
+            "Designed and tuned **B2BWF** workflows for claims intake, fee export, and acknowledgment imports.",
+            "Collaborated with QA and business teams to validate changes across **DEV / QA / UAT / PROD**.",
+          ],
+        },
+        {
+          header:
+            "Previous Role – .NET Developer | City, State | 2021 – 2023",
+          bullets: [
+            "Implemented REST APIs using **ASP.NET Core** and **Entity Framework**.",
+            "Improved SQL queries and stored procedures for better performance and stability.",
+          ],
+        },
+      ],
+      education: {
+        lines: ["M.S. in Computer Science – Some University – 2022"],
+      },
+      certifications: {
+        lines: [
+          "AZ-900 – Microsoft Azure Fundamentals (demo in dev mode)",
+        ],
+      },
+      projects: {
+        lines: [
+          "Resume Tailor Tool – JD-based automatic resume rewriting with ATS checks (DEV PREVIEW).",
+        ],
+      },
+    };
+
+    baseModel = deepClone(currentModel);
+    resetAtsUI();
+
+    setHeaderStatus(
+      "DEV MODE – loaded fake resume + JD (no backend calls)."
+    );
+    renderEditorsFromModel();
+    renderPreview();
+    setWorkspaceStatusMsg(
+      "DEV MODE: You can now test add/delete bullets, sections, jobs, and live preview without uploading anything."
+    );
+
+    // Show Page 2 (workspace), highlight in nav, and push a history entry
+    showScreen(SCREEN_PAGE2);
+    setNavVisible(true);
+    setActiveNav("workspace");
+
+    try {
+      if (window.history && history.pushState) {
+        history.pushState(
+          { screen: SCREEN_PAGE2 },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not push history state for dev workspace:", err);
+    }
+  });
+}
+
+
+
+
+// ----- DEV MODE: skip upload screen and auto-load fake model -----
+(function devSkipUploadIfNeeded() {
+  // Only trigger when URL has ?dev=1
+  if (!window.location.search.includes("dev=1")) return;
+
+  // Fake JD for rewrite buttons (just placeholder text)
+  currentJD =
+    "Dev mode JD: Senior .NET / EDI / Cloud role with SQL, APIs, healthcare, and claims processing.";
+
+  // Simple fake model so you can test editors + preview + delete buttons
+  currentModel = {
+    header: {
+      lines: [
+        "RAHAMAN CHEGG (DEV MODE)",
+        "Senior .NET / EDI Developer",
+        "Dallas, TX | rahaman@example.com | 555-555-5555",
+      ],
+    },
+    summary: {
+      bullets: [
+        "Experienced **.NET** and **SQL Server** developer working on healthcare claims workflows.",
+        "Built and optimized EDI pipelines, B2B workflows, and batch exports for payers and providers.",
+      ],
+    },
+    skills: {
+      columns: 2,
+      rows: [
+        ["Languages", "C#, T-SQL, JavaScript"],
+        ["Cloud / DevOps", "Azure, Git, CI/CD"],
+        ["EDI / Healthcare", "X12, 837/835, workers comp"],
+        ["Tools", "Visual Studio, SSMS, Postman"],
+      ],
+    },
+    experience: [
+      {
+        header:
+          "MedRisk / StrataCare – Application Developer | Remote | 2023 – Present",
+        environment: {
+          label: "Environment:",
+          value: ".NET 6, SQL Server, Azure, B2BWF",
+        },
+        role: {
+          label: "Role:",
+          value: "Application / EDI Developer – healthcare claims workflows",
+        },
+        project_description: {
+          label: "Project Description:",
+          value:
+            "End-to-end configuration and optimization of ESIS/MBR workflows and fee exports.",
+        },
+        bullets: [
+          "Designed and tuned **B2BWF** workflows for claims intake, fee export, and acknowledgment imports.",
+          "Collaborated with QA and business teams to validate changes across **DEV / QA / UAT / PROD**.",
+        ],
+      },
+      {
+        header: "Previous Role – .NET Developer | City, State | 2021 – 2023",
+        bullets: [
+          "Implemented REST APIs using **ASP.NET Core** and **Entity Framework**.",
+          "Improved SQL queries and stored procedures for better performance and stability.",
+        ],
+      },
+    ],
+    education: {
+      lines: ["M.S. in Computer Science – Some University – 2022"],
+    },
+    certifications: {
+      lines: [
+        "AZ-900 – Microsoft Azure Fundamentals (in progress dev mode demo)",
+      ],
+    },
+    projects: {
+      lines: [
+        "Resume Tailor Tool – JD-based automatic resume rewriting with ATS checks (DEV PREVIEW).",
+      ],
+    },
+  };
+
+  // For dev, just clone to baseModel too
+  baseModel = deepClone(currentModel);
+
+  resetAtsUI();
+  setHeaderStatus(
+    "DEV MODE – skipped upload screen (using fake resume + JD)."
+  );
+  renderEditorsFromModel();
+  renderPreview();
+  setWorkspaceStatusMsg(
+    "DEV MODE: You can test add/delete bullets, sections, jobs, and live preview."
+  );
+
+  // Start directly on Page 2 and mark current history entry as Page 2
+  showScreen(SCREEN_PAGE2);
+  setNavVisible(true);
+  setActiveNav("workspace");
+
+  try {
+    if (window.history && history.replaceState) {
+      history.replaceState(
+        { screen: SCREEN_PAGE2 },
+        "",
+        window.location.pathname + window.location.search
+      );
+    }
+  } catch (err) {
+    console.warn("Could not set history state for dev=1 workspace:", err);
+  }
+})();
+
+
+
+    
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function setUploadStatus(msg, isError = false) {
+      uploadStatus.textContent = msg || "";
+      uploadStatus.className = "status-bar";
+      if (!msg) return;
+      if (isError) uploadStatus.classList.add("status-error");
+    }
+
+    function setWorkspaceStatusMsg(msg, isError = false) {
+      workspaceStatus.textContent = msg || "";
+      workspaceStatus.className = "workspace-status";
+      if (isError) workspaceStatus.classList.add("error");
+    }
+
+    function showLlmToast(message) {
+      if (!llmToast) return;
+      if (!message) {
+        llmToast.style.display = "none";
+        return;
+      }
+      llmToast.textContent = message;
+      llmToast.style.display = "block";
+      clearTimeout(showLlmToast._timer);
+      showLlmToast._timer = setTimeout(() => {
+        llmToast.style.display = "none";
+      }, 4000);
+    }
+
+    function setHeaderStatus(msg) {
+      headerStatusText.textContent = msg || "";
+    }
+
+
+
+
+// Helper: go to Page 1 (upload) from anywhere in the app
+function goToUploadScreen(reset = false) {
+  // Use central router so we don’t fight other code
+  showScreen(SCREEN_PAGE1);
+  setNavVisible(true);
+  setActiveNav("upload");
+
+  if (reset) {
+    // Clear state so it feels like a fresh Page 1
+    currentModel = null;
+    baseModel = null;
+    currentFile = null;
+    currentJD = "";
+
+    setUploadStatus("");
+    setWorkspaceStatusMsg("");
+    resetAtsUI();
+
+    if (jdBox) jdBox.value = "";
+    if (resumeFileInput) resumeFileInput.value = "";
+
+    if (previewRoot) {
+      previewRoot.innerHTML =
+        "<p style='font-size:12px;color:#9ca3af;'>Parse a resume to view preview.</p>";
+    }
+  }
+}
+   
+
+    function showOverlay(show, title, sub) {
+      if (!overlay) return;
+
+      if (show) {
+        overlay.style.display = "flex";
+        if (title) overlayTitle.textContent = title;
+        if (sub) overlaySub.textContent = sub;
+
+        // Loading mode: show spinner + list, hide Close
+        if (overlaySpinnerBlock) overlaySpinnerBlock.style.display = "block";
+        if (overlayList) overlayList.style.display = "block";
+        if (overlayCloseBtn) overlayCloseBtn.style.display = "none";
+      } else {
+        overlay.style.display = "none";
+      }
+    }
+
+    // ----- Auth view switching (login / register / forgot) -----
+    function setAuthView(mode) {
+      if (!authViewLogin || !authViewRegister || !authViewForgot) return;
+
+      // Reset all views + tabs
+      authViewLogin.classList.remove("auth-view-active");
+      authViewRegister.classList.remove("auth-view-active");
+      authViewForgot.classList.remove("auth-view-active");
+
+      if (authTabLogin) authTabLogin.classList.remove("auth-tab-active");
+      if (authTabRegister) authTabRegister.classList.remove("auth-tab-active");
+      if (authTabForgot) authTabForgot.classList.remove("auth-tab-active");
+
+      // Default values
+      let title = "Sign in to continue";
+      let subtitle =
+        "Login to manage your resumes, job descriptions, and AI rewrites in one place.";
+
+      if (mode === "register") {
+        if (authViewRegister) authViewRegister.classList.add("auth-view-active");
+        if (authTabRegister) authTabRegister.classList.add("auth-tab-active");
+        title = "Create a new account";
+        subtitle = "Create a free account to save and track your rewrites.";
+      } else if (mode === "forgot") {
+        if (authViewForgot) authViewForgot.classList.add("auth-view-active");
+        if (authTabForgot) authTabForgot.classList.add("auth-tab-active");
+        title = "Reset your password";
+        subtitle =
+          "Enter the email associated with your account and we’ll send you a reset link.";
+      } else {
+        // login
+        if (authViewLogin) authViewLogin.classList.add("auth-view-active");
+        if (authTabLogin) authTabLogin.classList.add("auth-tab-active");
+      }
+
+      if (authCardTitle) authCardTitle.textContent = title;
+      if (authCardSubtitle) authCardSubtitle.textContent = subtitle;
+    }
+
+    // Wire tab clicks
+    if (authTabLogin) {
+      authTabLogin.addEventListener("click", () => setAuthView("login"));
+    }
+    if (authTabRegister) {
+      authTabRegister.addEventListener("click", () => setAuthView("register"));
+    }
+    if (authTabForgot) {
+      authTabForgot.addEventListener("click", () => setAuthView("forgot"));
+    }
+
+    // Wire text links inside views
+    if (authLinkGoRegister) {
+      authLinkGoRegister.addEventListener("click", (e) => {
+        e.preventDefault();
+        setAuthView("register");
+      });
+    }
+    if (authLinkGoForgot) {
+      authLinkGoForgot.addEventListener("click", (e) => {
+        e.preventDefault();
+        setAuthView("forgot");
+      });
+    }
+    if (authLinkBackToLoginFromRegister) {
+      authLinkBackToLoginFromRegister.addEventListener("click", (e) => {
+        e.preventDefault();
+        setAuthView("login");
+      });
+    }
+    if (authLinkBackToLoginFromForgot) {
+      authLinkBackToLoginFromForgot.addEventListener("click", (e) => {
+        e.preventDefault();
+        setAuthView("login");
+      });
+    }
+
+    // Ensure default is login on first load
+    setAuthView("login");
+
+
+    function showErrorOverlay(title, sub) {
+      if (!overlay) return;
+
+      overlay.style.display = "flex";
+
+      if (overlayTitle) overlayTitle.textContent = title || "Error";
+      if (overlaySub) overlaySub.textContent = sub || "";
+
+      // Error mode: hide spinner + list, show Close button
+      if (overlaySpinnerBlock) overlaySpinnerBlock.style.display = "none";
+      if (overlayList) overlayList.style.display = "none";
+      if (overlayCloseBtn) overlayCloseBtn.style.display = "inline-flex";
+    }
+    if (overlayCloseBtn) {
+      overlayCloseBtn.addEventListener("click", () => {
+        overlay.style.display = "none";
+      });
+    }
+
+    async function callApi(url, body, options = {}) {
+  const method = options.method || "POST";
+  const extraHeaders = options.headers || {};
+
+  // This will attach Authorization: Bearer <token> if we have one
+  const headers = getAuthHeaders(extraHeaders);
+
+  return fetch(url, {
+    method,
+    headers,
+    body,
+  });
+}
+
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function renderWithBoldMarkers(text) {
+      if (!text) return "";
+      const parts = String(text).split("**");
+      let html = "";
+      parts.forEach((part, idx) => {
+        const esc = escapeHtml(part);
+        if (idx % 2 === 1) {
+          html += "<strong>" + esc + "</strong>";
+        } else {
+          html += esc;
+        }
+      });
+      return html;
+    }
+
+    // Attach Ctrl+B shortcut to wrap selection in **bold** markers
+        function attachBoldShortcut(textarea) {
+      if (!textarea) return;
+
+      textarea.addEventListener("keydown", (e) => {
+        const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+        const metaPressed = isMac ? e.metaKey : e.ctrlKey;
+
+        if (!metaPressed || e.key.toLowerCase() !== "b") {
+          return;
+        }
+
+        e.preventDefault();
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        if (start == null || end == null || start === end) return;
+
+        const value = textarea.value;
+        const before = value.slice(0, start);
+        const selected = value.slice(start, end);
+        const after = value.slice(end);
+
+        // Case 1: selection INCLUDES the ** markers, e.g. "**EDI**"
+        const selectionStartsWithStars = selected.startsWith("**");
+        const selectionEndsWithStars = selected.endsWith("**");
+
+        if (selectionStartsWithStars && selectionEndsWithStars && selected.length > 4) {
+          // TOGGLE OFF by removing the outer ** **
+          const inner = selected.slice(2, -2);
+          textarea.value = before + inner + after;
+
+          const newStart = start;
+          const newEnd = start + inner.length;
+          textarea.setSelectionRange(newStart, newEnd);
+
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          return;
+        }
+
+        // Case 2: selection is INSIDE existing ** **, e.g. EDI in **EDI**
+        const beforeHasStars = before.endsWith("**");
+        const afterHasStars = after.startsWith("**");
+
+        if (beforeHasStars && afterHasStars) {
+          // TOGGLE OFF by removing surrounding ** **
+          const newBefore = before.slice(0, -2); // remove last **
+          const newAfter = after.slice(2);       // remove first **
+
+          textarea.value = newBefore + selected + newAfter;
+
+          const newStart = start - 2;
+          const newEnd = end - 2;
+          textarea.setSelectionRange(newStart, newEnd);
+
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          return;
+        }
+
+        // Case 3: not bolded yet → TOGGLE ON
+        textarea.value = before + "**" + selected + "**" + after;
+
+        const newStart = start + 2;
+        const newEnd = end + 2;
+        textarea.setSelectionRange(newStart, newEnd);
+
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    }
+
+    // ----- Auth screen actions (Page 0) -----
+   // if (googleSignInBtn) {
+   //   googleSignInBtn.addEventListener("click", () => {
+    //    if (window.localStorage) {
+      //    localStorage.setItem(AUTH_KEY, "google");
+     //   }
+      //  goToUploadScreen();
+    //    setHeaderStatus("Signed in with Google – upload a resume to start.");
+      //  setLogoutVisible(true);
+    //  });
+  //  }
+
+    if (skipAuthBtn) {
+  skipAuthBtn.addEventListener("click", () => {
+    if (window.localStorage) {
+      localStorage.setItem(AUTH_KEY, "guest");
+    }
+    onLoginSuccess("guest");
+  });
+}
+
+
+
+    // ----- Sign out: go back to Page 0 -----
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    // Clear stored auth mode + token
+    if (window.localStorage) {
+      localStorage.removeItem(AUTH_KEY);
+      localStorage.removeItem("resumeLabAuthToken"); // safe even if not set
+    }
+
+    // Clear ALL auth inputs and go back to Login view
+    clearAuthForms({ login: true, register: true, forgot: true });
+    setActiveAuthView("authViewLogin");
+
+    // Reset working state (Page 1/2)
+    currentModel = null;
+    baseModel = null;
+    currentFile = null;
+    currentJD = "";
+
+    setUploadStatus("");
+    setWorkspaceStatusMsg("");
+    resetAtsUI();
+
+    if (jdBox) jdBox.value = "";
+    if (resumeFileInput) resumeFileInput.value = "";
+
+    if (previewRoot) {
+      previewRoot.innerHTML =
+        "<p style='font-size:12px;color:#9ca3af;'>Parse a resume to view preview.</p>";
+    }
+
+    // Show Page 0 (auth), hide upload + workspace
+    if (screenAuth) screenAuth.style.display = "flex";
+    if (screenUpload) screenUpload.style.display = "none";
+    if (screenWorkspace) screenWorkspace.style.display = "none";
+
+    // Hide header/nav stuff
+    setLogoutVisible(false);
+    setNavVisible(false);
+    setHeaderStatus("");
+    setActiveNav("upload"); // keeps Upload as default when they log in again
+    // Reset browser history state to "auth" for this entry
+    try {
+      if (window.history && history.replaceState) {
+        history.replaceState(
+          { screen: SCREEN_AUTH },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not reset history state on logout:", err);
+    }
+  });
+}
+
+
+
+    // ---------- Editor renderers ----------
+function renderHeaderEditor() {
+  headerEditor.innerHTML = "";
+  if (!currentModel) return;
+
+  // Ensure header + lines array exist
+  if (!currentModel.header || !Array.isArray(currentModel.header.lines)) {
+    currentModel.header = { lines: [] };
+  }
+  const lines = currentModel.header.lines;
+
+  // Make sure we have at least [name, title]
+  while (lines.length < 2) {
+    lines.push("");
+  }
+
+  // Name row
+  const nameRow = document.createElement("div");
+  nameRow.className = "field-row";
+
+  const nameLabel = document.createElement("div");
+  nameLabel.className = "field-label";
+  nameLabel.style.fontSize = "11px";
+  nameLabel.textContent = "Name";
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.value = lines[0] || "";
+  nameInput.placeholder = "Full name as in resume header";
+  nameInput.addEventListener("input", () => {
+    lines[0] = nameInput.value;
+    renderPreview();
+  });
+
+  nameRow.appendChild(nameLabel);
+  nameRow.appendChild(nameInput);
+  headerEditor.appendChild(nameRow);
+
+  // Title row
+  const titleRow = document.createElement("div");
+  titleRow.className = "field-row";
+
+  const titleLabel = document.createElement("div");
+  titleLabel.className = "field-label";
+  titleLabel.style.fontSize = "11px";
+  titleLabel.textContent = "Title / Role";
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.value = lines[1] || "";
+  titleInput.placeholder = "e.g. Sr .NET Developer, EDI Analyst, Cloud Engineer…";
+  titleInput.addEventListener("input", () => {
+    lines[1] = titleInput.value;
+    renderPreview();
+  });
+
+  titleRow.appendChild(titleLabel);
+  titleRow.appendChild(titleInput);
+  headerEditor.appendChild(titleRow);
+
+  // Contact lines
+  const contactHeader = document.createElement("div");
+  contactHeader.className = "editor-card-subtitle";
+  contactHeader.style.marginTop = "6px";
+  contactHeader.textContent = "Contact lines (email, phone, LinkedIn, location…)";
+  headerEditor.appendChild(contactHeader);
+
+  const contactCount = Math.max(0, lines.length - 2);
+  for (let i = 0; i < contactCount; i++) {
+    const idxInLines = 2 + i;
+
+    const row = document.createElement("div");
+    row.className = "field-row";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = lines[idxInLines] || "";
+    input.placeholder = "Contact line " + (i + 1);
+    input.addEventListener("input", () => {
+      lines[idxInLines] = input.value;
+      renderPreview();
+    });
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "tiny-btn";
+    removeBtn.type = "button";
+    removeBtn.textContent = "✕";
+    removeBtn.title = "Remove this contact line";
+    removeBtn.addEventListener("click", () => {
+      // Remove this specific contact line from lines[]
+      currentModel.header.lines.splice(idxInLines, 1);
+      renderHeaderEditor();
+      renderPreview();
+    });
+
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    headerEditor.appendChild(row);
+  }
+
+  const addBtn = document.createElement("button");
+  addBtn.className = "add-btn-inline";
+  addBtn.type = "button";
+  addBtn.textContent = "+ Add contact line";
+  addBtn.addEventListener("click", () => {
+    currentModel.header.lines.push("");
+    renderHeaderEditor();
+    renderPreview();
+  });
+
+  headerEditor.appendChild(addBtn);
+}
+
+    function renderSummaryEditor() {
+      summaryEditor.innerHTML = "";
+      if (!currentModel) return;
+
+      const summary = currentModel.summary || { bullets: [] };
+      if (!Array.isArray(summary.bullets)) {
+        summary.bullets = [];
+      }
+
+      summary.bullets.forEach((text, idx) => {
+        const row = document.createElement("div");
+        row.className = "field-row";
+
+        const dot = document.createElement("div");
+        dot.className = "bullet-dot";
+
+        const ta = document.createElement("textarea");
+        ta.value = text || "";
+        ta.placeholder = "Summary bullet " + (idx + 1);
+        ta.addEventListener("input", () => {
+          currentModel.summary.bullets[idx] = ta.value;
+          renderPreview();
+        });
+        attachBoldShortcut(ta);
+
+
+        
+        const remove = document.createElement("button");
+        remove.className = "tiny-btn";
+        remove.type = "button";
+        remove.textContent = "✕";
+        remove.title = "Remove bullet";
+        remove.addEventListener("click", () => {
+          currentModel.summary.bullets.splice(idx, 1);
+          renderSummaryEditor();
+          renderPreview();
+        });
+
+        row.appendChild(dot);
+        row.appendChild(ta);
+        row.appendChild(remove);
+        summaryEditor.appendChild(row);
+      });
+
+      const addBtn = document.createElement("button");
+      addBtn.className = "add-btn-inline";
+      addBtn.type = "button";
+      addBtn.textContent = "+ Add summary point";
+      addBtn.addEventListener("click", () => {
+        if (!currentModel.summary) currentModel.summary = { bullets: [] };
+        currentModel.summary.bullets.push("");
+        renderSummaryEditor();
+        renderPreview();
+      });
+
+      summaryEditor.appendChild(addBtn);
+    }
+
+    function normalizeSkillsRows() {
+      if (!currentModel) return;
+      if (!currentModel.skills) {
+        currentModel.skills = { rows: [], columns: 2 };
+        return;
+      }
+      const rows = currentModel.skills.rows || [];
+      const norm = [];
+      rows.forEach((row) => {
+        if (Array.isArray(row)) {
+          const left = row[0] || "";
+          const right = row[1] || "";
+          norm.push([left, right]);
+        } else if (row && typeof row === "object") {
+          norm.push([row.label || "", row.value || ""]);
+        }
+      });
+      currentModel.skills.rows = norm;
+    }
+
+    function renderSkillsEditor() {
+      skillsEditor.innerHTML = "";
+      if (!currentModel || !currentModel.skills) return;
+
+      normalizeSkillsRows();
+      const rows = currentModel.skills.rows;
+
+      rows.forEach((row, idx) => {
+        const [labelVal, valueVal] = row;
+
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "skills-grid-row";
+
+        const labelInput = document.createElement("input");
+        labelInput.type = "text";
+        labelInput.placeholder = "Heading (e.g. Programming Languages)";
+        labelInput.value = labelVal || "";
+        labelInput.addEventListener("input", () => {
+          rows[idx][0] = labelInput.value;
+          renderPreview();
+        });
+
+        const valueArea = document.createElement("textarea");
+        valueArea.placeholder = "Values (e.g. C#, Java, Python, SQL …)";
+        valueArea.value = valueVal || "";
+        valueArea.addEventListener("input", () => {
+          rows[idx][1] = valueArea.value;
+          renderPreview();
+        });
+        attachBoldShortcut(valueArea);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "tiny-btn";
+        removeBtn.type = "button";
+        removeBtn.textContent = "✕";
+        removeBtn.title = "Remove row";
+        removeBtn.addEventListener("click", () => {
+          rows.splice(idx, 1);
+          renderSkillsEditor();
+          renderPreview();
+        });
+
+        rowDiv.appendChild(labelInput);
+        rowDiv.appendChild(valueArea);
+        rowDiv.appendChild(removeBtn);
+        skillsEditor.appendChild(rowDiv);
+      });
+
+      const addBtn = document.createElement("button");
+      addBtn.className = "add-btn-inline";
+      addBtn.type = "button";
+      addBtn.textContent = "+ Add skills row";
+      addBtn.addEventListener("click", () => {
+        if (!currentModel.skills) currentModel.skills = { rows: [], columns: 2 };
+        currentModel.skills.rows.push(["", ""]);
+        renderSkillsEditor();
+        renderPreview();
+      });
+
+      skillsEditor.appendChild(addBtn);
+    }
+// ---- helper: detect a fake "Responsibilities" bullet ----
+    function isResponsibilitiesLabelText(text) {
+      if (!text) return false;
+      const v = String(text).trim().toLowerCase();
+      return v === "responsibilities:" || v === "responsibilities";
+    }
+        function renderExperienceEditor() {
+      experienceEditor.innerHTML = "";
+      if (!currentModel || !Array.isArray(currentModel.experience)) return;
+
+      currentModel.experience.forEach((job, idx) => {
+        const card = document.createElement("div");
+        card.className = "job-card";
+
+        // --- Job header row (Job 1 / index pill / delete button) ---
+        const headerRow = document.createElement("div");
+        headerRow.className = "job-card-header";
+
+        const title = document.createElement("div");
+        title.textContent = "Job " + (idx + 1);
+
+        const headerRight = document.createElement("div");
+        headerRight.style.display = "flex";
+        headerRight.style.alignItems = "center";
+        headerRight.style.gap = "6px";
+
+        const pill = document.createElement("span");
+        pill.className = "job-index-pill";
+        pill.textContent = "Experience";
+
+        const deleteJobBtn = document.createElement("button");
+        deleteJobBtn.type = "button";
+        deleteJobBtn.className = "job-delete-btn";
+        deleteJobBtn.textContent = "✕";
+        deleteJobBtn.title = "Delete this job";
+        deleteJobBtn.addEventListener("click", () => {
+          const hasContent =
+            (job.header && job.header.trim()) ||
+            (job.environment &&
+              job.environment.value &&
+              job.environment.value.trim()) ||
+            (job.role && job.role.value && job.role.value.trim()) ||
+            (job.project_description &&
+              job.project_description.value &&
+              job.project_description.value.trim()) ||
+            (Array.isArray(job.bullets) &&
+              job.bullets.some((b) => b && b.trim()));
+
+          const msg = hasContent
+            ? "Delete this entire job (header, bullets, environment/role/project) from the tailored resume?"
+            : "This job looks empty. Remove it from the resume?";
+
+          if (!window.confirm(msg)) return;
+
+          currentModel.experience.splice(idx, 1);
+          renderExperienceEditor();
+          renderPreview();
+          setWorkspaceStatusMsg("Removed one experience block from the resume.");
+        });
+
+        headerRight.appendChild(pill);
+        headerRight.appendChild(deleteJobBtn);
+
+        headerRow.appendChild(title);
+        headerRow.appendChild(headerRight);
+        card.appendChild(headerRow);
+
+        // --- Header text (company | role | dates) ---
+        const headerInput = document.createElement("textarea");
+        headerInput.className = "job-header-input";
+        headerInput.value = job.header || "";
+        headerInput.placeholder = "Header (e.g. Company | Location | Role | Dates)";
+        headerInput.addEventListener("input", () => {
+          job.header = headerInput.value;
+          renderPreview();
+        });
+        card.appendChild(headerInput);
+
+        // --- Role (ABOVE bullets) ---
+        const roleObj = job.role;
+        if (roleObj && typeof roleObj === "object" && (roleObj.label || roleObj.value)) {
+          const lab = document.createElement("div");
+          lab.className = "label-inline";
+          lab.textContent = roleObj.label || "Role:";
+          card.appendChild(lab);
+
+                    const ta = document.createElement("textarea");
+          ta.className = "job-meta-textarea";   // 👈 smaller horizontal style
+          ta.value = roleObj.value || "";
+          ta.addEventListener("input", () => {
+            job.role.value = ta.value;
+            renderPreview();
+          });
+          card.appendChild(ta);
+        }
+
+        // --- Project Description (ABOVE bullets) ---
+        const projObj = job.project_description;
+        if (projObj && typeof projObj === "object" && (projObj.label || projObj.value)) {
+          const lab = document.createElement("div");
+          lab.className = "label-inline";
+          lab.textContent = projObj.label || "Project Description:";
+          card.appendChild(lab);
+
+                    const ta = document.createElement("textarea");
+          ta.className = "job-meta-textarea";   // 👈 smaller style
+          ta.value = projObj.value || "";
+          ta.addEventListener("input", () => {
+            job.project_description.value = ta.value;
+            renderPreview();
+          });
+          card.appendChild(ta);
+
+        }
+
+        // --- Responsibilities label + bullets in the middle ---
+        const respLabel = document.createElement("div");
+        respLabel.className = "responsibilities-label";
+        respLabel.textContent = "Responsibilities";
+        card.appendChild(respLabel);
+
+        // Normalize bullets array
+        if (!Array.isArray(job.bullets)) {
+          job.bullets = [];
+        }
+
+        // Drop any bullet that is just "Responsibilities:" / "Responsibilities"
+        job.bullets = job.bullets.filter((b) => !isResponsibilitiesLabelText(b));
+
+        const bullets = job.bullets;
+        const bulletsContainer = document.createElement("div");
+        bulletsContainer.style.marginTop = "4px";
+
+        bullets.forEach((btext, bIdx) => {
+          const row = document.createElement("div");
+          row.className = "field-row";
+
+          const dot = document.createElement("div");
+          dot.className = "bullet-dot";
+
+          const ta = document.createElement("textarea");
+          ta.value = btext || "";
+          ta.placeholder = "Bullet " + (bIdx + 1);
+          ta.addEventListener("input", () => {
+            job.bullets[bIdx] = ta.value;
+            renderPreview();
+          });
+          // Ctrl+B bold shortcut for bullets
+          attachBoldShortcut(ta);
+
+          const remove = document.createElement("button");
+          remove.className = "tiny-btn";
+          remove.type = "button";
+          remove.textContent = "✕";
+          remove.title = "Remove bullet";
+          remove.addEventListener("click", () => {
+            job.bullets.splice(bIdx, 1);
+            renderExperienceEditor();
+            renderPreview();
+          });
+
+          row.appendChild(dot);
+          row.appendChild(ta);
+          row.appendChild(remove);
+          bulletsContainer.appendChild(row);
+        });
+
+        const addBullet = document.createElement("button");
+        addBullet.className = "add-btn-inline";
+        addBullet.type = "button";
+        addBullet.textContent = "+ Add bullet";
+        addBullet.addEventListener("click", () => {
+          if (!Array.isArray(job.bullets)) job.bullets = [];
+          job.bullets.push("");
+          renderExperienceEditor();
+          renderPreview();
+        });
+
+        bulletsContainer.appendChild(addBullet);
+        card.appendChild(bulletsContainer);
+
+        // --- Environment (BELOW bullets) ---
+        const envObj = job.environment;
+        if (envObj && typeof envObj === "object" && (envObj.label || envObj.value)) {
+          const lab = document.createElement("div");
+          lab.className = "label-inline";
+          lab.textContent = envObj.label || "Environment:";
+          card.appendChild(lab);
+
+                    const ta = document.createElement("textarea");
+          ta.className = "job-meta-textarea";   // 👈 smaller horizontal style
+          ta.value = envObj.value || "";
+          ta.addEventListener("input", () => {
+            job.environment.value = ta.value;
+            renderPreview();
+          });
+          card.appendChild(ta);
+
+        }
+
+        experienceEditor.appendChild(card);
+      });
+    }
+
+
+    function renderSimpleLinesEditor(sectionModel, container, sectionKey) {
+  container.innerHTML = "";
+  if (!currentModel || !sectionModel || !Array.isArray(sectionModel.lines)) return;
+
+  sectionModel.lines.forEach((line, idx) => {
+    // row wrapper so we can put textarea + X like bullets
+    const row = document.createElement("div");
+    row.className = "field-row";
+
+    const ta = document.createElement("textarea");
+    ta.value = line || "";
+    ta.placeholder = sectionKey + " line " + (idx + 1);
+    ta.addEventListener("input", () => {
+      sectionModel.lines[idx] = ta.value;
+      renderPreview();
+    });
+
+    const remove = document.createElement("button");
+    remove.className = "tiny-btn";
+    remove.type = "button";
+    remove.textContent = "✕";
+    remove.title = "Delete this " + sectionKey.toLowerCase() + " line";
+    remove.addEventListener("click", () => {
+      sectionModel.lines.splice(idx, 1);
+      renderSimpleLinesEditor(sectionModel, container, sectionKey);
+      renderPreview();
+    });
+
+    row.appendChild(ta);
+    row.appendChild(remove);
+    container.appendChild(row);
+  });
+
+  const btn = document.createElement("button");
+  btn.className = "add-btn-inline";
+  btn.type = "button";
+  btn.textContent = "+ Add " + sectionKey.toLowerCase() + " line";
+  btn.addEventListener("click", () => {
+    sectionModel.lines.push("");
+    renderSimpleLinesEditor(sectionModel, container, sectionKey);
+    renderPreview();
+  });
+  container.appendChild(btn);
+}
+    function renderCustomSectionsEditor() {
+      customSectionsEditor.innerHTML = "";
+      if (!currentModel) return;
+
+      if (!Array.isArray(currentModel.custom_sections)) {
+        currentModel.custom_sections = [];
+      }
+
+      const sections = currentModel.custom_sections;
+
+      sections.forEach((sec, idx) => {
+        // Ensure shape
+        if (!sec || typeof sec !== "object") {
+          sections[idx] = { name: "", bullets: [""] };
+        }
+        if (!Array.isArray(sections[idx].bullets)) {
+          sections[idx].bullets = [sections[idx].bullets || ""];
+        }
+
+        const card = document.createElement("div");
+        card.className = "job-card"; // reuse nice bordered card style
+        card.style.marginBottom = "8px";
+
+        // Header row: section title + delete
+        const headerRow = document.createElement("div");
+        headerRow.className = "job-card-header";
+
+        const titleLabel = document.createElement("div");
+        titleLabel.textContent = "Section " + (idx + 1);
+
+        const headerRight = document.createElement("div");
+        headerRight.style.display = "flex";
+        headerRight.style.alignItems = "center";
+        headerRight.style.gap = "6px";
+
+        const pill = document.createElement("span");
+        pill.className = "job-index-pill";
+        pill.textContent = "Custom";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "job-delete-btn";
+        deleteBtn.textContent = "✕";
+        deleteBtn.title = "Delete this custom section";
+        deleteBtn.addEventListener("click", () => {
+          sections.splice(idx, 1);
+          renderCustomSectionsEditor();
+          renderPreview();
+        });
+
+        headerRight.appendChild(pill);
+        headerRight.appendChild(deleteBtn);
+        headerRow.appendChild(titleLabel);
+        headerRow.appendChild(headerRight);
+        card.appendChild(headerRow);
+
+        // Title input (e.g. Achievements, Awards)
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.className = "job-header-input";
+        titleInput.placeholder = "Section title (e.g. Achievements, Awards, Publications)";
+        titleInput.value = sec.name || "";
+        titleInput.addEventListener("input", () => {
+          sections[idx].name = titleInput.value;
+          renderPreview();
+        });
+        card.appendChild(titleInput);
+
+        // Bullets container
+        const bulletsContainer = document.createElement("div");
+        bulletsContainer.style.marginTop = "6px";
+
+        sections[idx].bullets.forEach((b, bIdx) => {
+          const row = document.createElement("div");
+          row.className = "field-row";
+
+          const dot = document.createElement("div");
+          dot.className = "bullet-dot";
+
+          const ta = document.createElement("textarea");
+          ta.value = b || "";
+          ta.placeholder = "Bullet " + (bIdx + 1);
+          ta.addEventListener("input", () => {
+            sections[idx].bullets[bIdx] = ta.value;
+            renderPreview();
+          });
+
+          const remove = document.createElement("button");
+          remove.className = "tiny-btn";
+          remove.type = "button";
+          remove.textContent = "✕";
+          remove.title = "Remove bullet";
+          remove.addEventListener("click", () => {
+            sections[idx].bullets.splice(bIdx, 1);
+            renderCustomSectionsEditor();
+            renderPreview();
+          });
+
+          row.appendChild(dot);
+          row.appendChild(ta);
+          row.appendChild(remove);
+          bulletsContainer.appendChild(row);
+        });
+
+        const addBullet = document.createElement("button");
+        addBullet.className = "add-btn-inline";
+        addBullet.type = "button";
+        addBullet.textContent = "+ Add bullet";
+        addBullet.addEventListener("click", () => {
+          sections[idx].bullets.push("");
+          renderCustomSectionsEditor();
+          renderPreview();
+        });
+
+        bulletsContainer.appendChild(addBullet);
+        card.appendChild(bulletsContainer);
+
+        customSectionsEditor.appendChild(card);
+      });
+
+      const addSectionBtn = document.createElement("button");
+      addSectionBtn.className = "add-btn-inline";
+      addSectionBtn.type = "button";
+      addSectionBtn.textContent = "+ Add custom section";
+      addSectionBtn.addEventListener("click", () => {
+        currentModel.custom_sections.push({
+          name: "",
+          bullets: [""]
+        });
+        renderCustomSectionsEditor();
+        renderPreview();
+      });
+
+      customSectionsEditor.appendChild(addSectionBtn);
+    }
+
+
+    function renderEditorsFromModel() {
+      renderHeaderEditor();
+      renderSummaryEditor();
+      renderSkillsEditor();
+      renderExperienceEditor();
+
+      renderSimpleLinesEditor(
+        currentModel.education || { lines: [] },
+        educationEditor,
+        "Education"
+      );
+      renderSimpleLinesEditor(
+        currentModel.certifications || { lines: [] },
+        certsEditor,
+        "Cert"
+      );
+      renderSimpleLinesEditor(
+        currentModel.projects || { lines: [] },
+        projectsEditor,
+        "Project"
+      );
+
+      renderCustomSectionsEditor();
+    }
+
+
+    // ---------- Preview ----------
+
+    function renderPreview() {
+  if (!currentModel) {
+    previewRoot.innerHTML =
+      "<p style='font-size:12px;color:#9ca3af;'>Parse a resume to view preview.</p>";
+    return;
+  }
+
+  const header = currentModel.header || {};
+  const headerLines = header.lines || [];
+  const name = headerLines[0] || "";
+  const title = headerLines[1] || "";
+  const contactLines = headerLines.slice(2).filter((x) => x && x.trim());
+  const contact = contactLines.join(" | ");
+
+  const summary = currentModel.summary || { bullets: [] };
+  const skills = currentModel.skills || { rows: [] };
+  const experience = Array.isArray(currentModel.experience)
+    ? currentModel.experience
+    : [];
+  const education = currentModel.education || { lines: [] };
+  const certs = currentModel.certifications || { lines: [] };
+  const projects = currentModel.projects || { lines: [] };
+  const customSections = Array.isArray(currentModel.custom_sections)
+    ? currentModel.custom_sections
+    : [];
+
+  let html = "";
+
+  // ✅ HEADER ALWAYS FIRST
+  if (name || title || contact) {
+    html +=
+      "<div class='preview-header-name'>" + escapeHtml(name) + "</div>";
+    if (title) {
+      html +=
+        "<div class='preview-header-title'>" +
+        escapeHtml(title) +
+        "</div>";
+    }
+    if (contact) {
+      html +=
+        "<div class='preview-header-contact'>" +
+        escapeHtml(contact) +
+        "</div>";
+    }
+  }
+
+  // --- small helper functions that append to `html` ---
+
+  function appendSummary() {
+    if (!Array.isArray(summary.bullets) || !summary.bullets.length) return;
+    html +=
+      "<div class='preview-section'><div class='preview-section-title'>Summary</div><ul>";
+    summary.bullets.forEach((b) => {
+      if (!b || !b.trim()) return;
+      html += "<li>" + renderWithBoldMarkers(b) + "</li>";
+    });
+    html += "</ul></div>";
+  }
+
+  function appendSkills() {
+    if (!Array.isArray(skills.rows) || !skills.rows.length) return;
+    html +=
+      "<div class='preview-section'><div class='preview-section-title'>Skills</div>";
+    html += "<table class='preview-skills-table'>";
+    skills.rows.forEach((row) => {
+      let left = "";
+      let right = "";
+      if (Array.isArray(row)) {
+        left = row[0] || "";
+        right = row[1] || "";
+      } else if (row && typeof row === "object") {
+        left = row.label || "";
+        right = row.value || "";
+      }
+      if (!left && !right) return;
+      html +=
+        "<tr><td>" +
+        escapeHtml(left) +
+        "</td><td>" +
+        renderWithBoldMarkers(right) +
+        "</td></tr>";
+    });
+    html += "</table></div>";
+  }
+
+  function appendExperience() {
+    if (!experience.length) return;
+
+    html +=
+      "<div class='preview-section'><div class='preview-section-title'>Professional Experience</div>";
+
+    experience.forEach((job) => {
+      const headerText = job.header || "";
+      if (headerText) {
+        html +=
+          "<div class='preview-job-header'>" +
+          escapeHtml(headerText) +
+          "</div>";
+      }
+
+      const env = job.environment;
+      const role = job.role;
+      const proj = job.project_description;
+
+      // Role + Project ABOVE bullets
+      const roleProjLines = [];
+
+      if (role && typeof role === "object" && role.value) {
+        roleProjLines.push(
+          "<strong>" +
+            escapeHtml(role.label || "Role:") +
+            "</strong> " +
+            renderWithBoldMarkers(role.value)
+        );
+      }
+
+      if (proj && typeof proj === "object" && proj.value) {
+        roleProjLines.push(
+          "<strong>" +
+            escapeHtml(proj.label || "Project Description:") +
+            "</strong> " +
+            renderWithBoldMarkers(proj.value)
+        );
+      }
+
+      if (roleProjLines.length) {
+        html +=
+          "<div class='preview-job-meta'>" +
+          roleProjLines.join("<br>") +
+          "</div>";
+      }
+
+      // Bullets in the middle
+      const rawBullets = Array.isArray(job.bullets) ? job.bullets : [];
+      const bullets = rawBullets.filter(
+        (b) => b && b.trim() && !isResponsibilitiesLabelText(b)
+      );
+
+      if (bullets.length) {
+        html += "<ul>";
+        bullets.forEach((b) => {
+          html += "<li>" + renderWithBoldMarkers(b) + "</li>";
+        });
+        html += "</ul>";
+      }
+
+      // Environment BELOW bullets
+      if (env && typeof env === "object" && env.value) {
+        html +=
+          "<div class='preview-job-meta'>" +
+          "<strong>" +
+          escapeHtml(env.label || "Environment:") +
+          "</strong> " +
+          renderWithBoldMarkers(env.value) +
+          "</div>";
+      }
+    });
+
+    html += "</div>";
+  }
+
+  function appendEducation() {
+    if (!Array.isArray(education.lines) || !education.lines.length) return;
+    html +=
+      "<div class='preview-section'><div class='preview-section-title'>Education</div><ul>";
+    education.lines.forEach((ln) => {
+      if (!ln || !ln.trim()) return;
+      html += "<li>" + escapeHtml(ln) + "</li>";
+    });
+    html += "</ul></div>";
+  }
+
+  function appendCertifications() {
+    if (!Array.isArray(certs.lines) || !certs.lines.length) return;
+    html +=
+      "<div class='preview-section'><div class='preview-section-title'>Certifications</div><ul>";
+    certs.lines.forEach((ln) => {
+      if (!ln || !ln.trim()) return;
+      html += "<li>" + escapeHtml(ln) + "</li>";
+    });
+    html += "</ul></div>";
+  }
+
+  function appendProjects() {
+    if (!Array.isArray(projects.lines) || !projects.lines.length) return;
+    html +=
+      "<div class='preview-section'><div class='preview-section-title'>Projects</div><ul>";
+    projects.lines.forEach((ln) => {
+      if (!ln || !ln.trim()) return;
+      html += "<li>" + escapeHtml(ln) + "</li>";
+    });
+    html += "</ul></div>";
+  }
+
+  function appendCustomSections() {
+    if (!customSections.length) return;
+
+    customSections.forEach((sec) => {
+      if (!sec || !sec.name || !sec.name.trim()) return;
+
+      const bullets = Array.isArray(sec.bullets) ? sec.bullets : [];
+
+      html += "<div class='preview-section'>";
+      html +=
+        "<div class='preview-section-title'>" +
+        escapeHtml(sec.name) +
+        "</div>";
+
+      if (bullets.length) {
+        html += "<ul>";
+        bullets.forEach((b) => {
+          if (!b || !b.trim()) return;
+          html += "<li>" + renderWithBoldMarkers(b) + "</li>";
+        });
+        html += "</ul>";
+      }
+
+      html += "</div>";
+    });
+  }
+
+  // ----- SECTION ORDER LOGIC -----
+
+  const defaultOrder = [
+    "summary",
+    "skills",
+    "experience",
+    "education",
+    "certifications",
+    "projects",
+    "custom_sections",
+  ];
+
+  const order =
+    Array.isArray(currentModel.section_order) &&
+    currentModel.section_order.length
+      ? currentModel.section_order
+      : defaultOrder;
+
+  order.forEach((id) => {
+    if (id === "summary") {
+      appendSummary();
+    } else if (id === "skills") {
+      appendSkills();
+    } else if (id === "experience") {
+      appendExperience();
+    } else if (id === "education") {
+      appendEducation();
+    } else if (id === "certifications") {
+      appendCertifications();
+    } else if (id === "projects") {
+      appendProjects();
+    } else if (id === "custom_sections") {
+      appendCustomSections();
+    }
+  });
+
+  previewRoot.innerHTML = html;
+}
+
+  // ----- Preview mode (resume vs cover letter) -----
+
+  function setPreviewMode(mode) {
+    currentPreviewMode = mode === "cover" ? "cover" : "resume";
+
+    if (btnPreviewResume && btnPreviewCover) {
+      btnPreviewResume.classList.toggle("active", currentPreviewMode === "resume");
+      btnPreviewCover.classList.toggle("active", currentPreviewMode === "cover");
+    }
+
+    if (previewResumePane && coverLetterPane) {
+      previewResumePane.style.display =
+        currentPreviewMode === "resume" ? "block" : "none";
+      coverLetterPane.style.display =
+        currentPreviewMode === "cover" ? "block" : "none";
+    }
+
+    if (currentPreviewMode === "resume") {
+      renderPreview();
+    }
+  }
+
+  if (btnPreviewResume) {
+    btnPreviewResume.addEventListener("click", () => setPreviewMode("resume"));
+  }
+  if (btnPreviewCover) {
+    btnPreviewCover.addEventListener("click", () => setPreviewMode("cover"));
+  }
+
+      // ----- Cover letter generate + download -----
+
+  if (btnGenerateCoverLetter) {
+    btnGenerateCoverLetter.addEventListener("click", () => {
+      generateCoverLetter();
+    });
+  }
+
+  if (btnDownloadCover) {
+    btnDownloadCover.addEventListener("click", () => {
+      downloadCoverLetterDocx();
+    });
+  }
+
+
+
+async function generateCoverLetter() {
+  if (!currentModel) {
+    setWorkspaceStatusMsg("No model loaded – parse a resume first.", true);
+    showErrorOverlay(
+      "Cannot generate cover letter",
+      "No parsed resume model is available.\nUpload a DOCX and parse it first."
+    );
+    return;
+  }
+  if (!currentJD) {
+    setWorkspaceStatusMsg("Job description is missing.", true);
+    showErrorOverlay(
+      "Cannot generate cover letter",
+      "No job description is loaded.\nPaste or upload a JD first."
+    );
+    return;
+  }
+
+  setPreviewMode("cover");
+  setWorkspaceStatusMsg("Generating cover letter with JD…");
+  showOverlay(
+    true,
+    "Generating cover letter…",
+    "Using your updated resume and the job description to draft a tailored cover letter."
+  );
+
+  const fd = new FormData();
+  fd.append("model_json", JSON.stringify(currentModel));
+  fd.append("job_description", currentJD);
+
+  // Use the existing helper so we don't duplicate checkbox logic
+  try {
+    const providers =
+      typeof getSelectedLlmProviders === "function"
+        ? getSelectedLlmProviders()
+        : [];
+
+    if (providers && providers.length > 0) {
+      fd.append("llm_providers", providers.join(","));
+    }
+  } catch (e) {
+    console.warn("Could not compute llm_providers for cover letter:", e);
+  }
+
+  try {
+    const resp = await callApi(
+      `${API_BASE}/api/generate-cover-letter`,
+      fd
+    );
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      throw new Error(data.error || "Cover letter generation failed.");
+    }
+
+    if (coverLetterContent) {
+      coverLetterContent.textContent = data.cover_letter || "";
+    }
+    if (coverLetterStatus) {
+      const prov = data.llm_provider || "LLM";
+      const model = data.llm_model || "";
+      coverLetterStatus.textContent = model
+        ? `Generated by ${prov} (${model})`
+        : `Generated by ${prov}`;
+    }
+
+    setWorkspaceStatusMsg("Cover letter generated.");
+  } catch (e) {
+    console.error(e);
+    if (coverLetterStatus) {
+      coverLetterStatus.textContent = "Error generating cover letter.";
+    }
+    const msg = e && e.message ? e.message : "Unknown error.";
+    showErrorOverlay("Cover letter generation failed", msg);
+    setWorkspaceStatusMsg(
+      "Error generating cover letter: " + msg,
+      true
+    );
+  } finally {
+    showOverlay(false);
+  }
+}
+
+
+ 
+  
+
+
+  async function downloadCoverLetterDocx() {
+    if (!coverLetterContent || !coverLetterContent.textContent.trim()) {
+      showErrorOverlay(
+        "Cannot download cover letter",
+        "No cover letter has been generated yet.\nClick \"Generate cover letter\" first."
+      );
+      return;
+    }
+
+    if (!currentModel) {
+      showErrorOverlay(
+        "Cannot download cover letter",
+        "No parsed resume model is available.\nUpload a DOCX and parse it first."
+      );
+      return;
+    }
+
+    setWorkspaceStatusMsg("Preparing cover letter DOCX…");
+    showOverlay(
+      true,
+      "Preparing DOCX…",
+      "Building a formatted cover letter document."
+    );
+
+    const fd = new FormData();
+    fd.append("cover_letter_text", coverLetterContent.textContent || "");
+    fd.append("model_json", JSON.stringify(currentModel));
+
+    try {
+  const resp = await fetch(`${API_BASE}/api/generate-cover-letter-docx`, {
+    method: "POST",
+    body: fd
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `HTTP ${resp.status}`);
+  }
+
+  // --- NEW: pull filename from Content-Disposition ---
+  let downloadName = "cover_letter.docx";
+
+  const cd =
+    resp.headers.get("Content-Disposition") ||
+    resp.headers.get("content-disposition");
+
+  if (cd) {
+    const match = cd.match(/filename="?([^"]+)"?/i);
+    if (match && match[1]) {
+      downloadName = match[1];
+    }
+  }
+  // --------------------------------------------------
+
+  const blob = await resp.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = downloadName;  // now uses name_role_cover_letter.docx
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+
+  setWorkspaceStatusMsg("Downloaded cover letter DOCX.");
+} catch (e) {
+
+
+      console.error(e);
+      const msg = e && e.message ? e.message : "Something went wrong while generating the DOCX.";
+      showErrorOverlay("Cover letter download failed", msg);
+      setWorkspaceStatusMsg("Cover letter download failed: " + msg, true);
+    } finally {
+      showOverlay(false);
+    }
+  }
+
+
+    // ---------- Sidebar collapse + tabs ----------
+
+    let sidebarCollapsed = false;
+
+    function updateSidebarCollapseUI() {
+      if (!sidebar || !sidebarCollapseBtn) return;
+      if (sidebarCollapsed) {
+        sidebar.classList.add("collapsed");
+        sidebarCollapseBtn.textContent = "⮞";
+        sidebarCollapseBtn.title = "Expand ATS sidebar";
+      } else {
+        sidebar.classList.remove("collapsed");
+        sidebarCollapseBtn.textContent = "⮜";
+        sidebarCollapseBtn.title = "Collapse ATS sidebar";
+      }
+    }
+
+    function activateSidebarTab(tabName) {
+      if (!sidebarTabAts || !sidebarTabRewrite || !sidebarPanelAts || !sidebarPanelRewrite) return;
+
+      if (tabName === "ats") {
+        sidebarPanelAts.style.display = "block";
+        sidebarPanelRewrite.style.display = "none";
+        sidebarTabAts.classList.add("sidebar-tab-active");
+        sidebarTabRewrite.classList.remove("sidebar-tab-active");
+      } else {
+        sidebarPanelAts.style.display = "none";
+        sidebarPanelRewrite.style.display = "block";
+        sidebarTabAts.classList.remove("sidebar-tab-active");
+        sidebarTabRewrite.classList.add("sidebar-tab-active");
+      }
+    }
+
+    if (sidebarCollapseBtn) {
+      sidebarCollapseBtn.addEventListener("click", () => {
+        sidebarCollapsed = !sidebarCollapsed;
+        updateSidebarCollapseUI();
+      });
+    }
+
+    if (sidebarTabAts) {
+      sidebarTabAts.addEventListener("click", () => activateSidebarTab("ats"));
+    }
+    if (sidebarTabRewrite) {
+      sidebarTabRewrite.addEventListener("click", () => activateSidebarTab("rewrite"));
+    }
+
+    // ---------- Column horizontal resizer (editor <-> preview) ----------
+
+    function initColumnResizer() {
+      if (!editorColumn || !previewColumn || !columnResizer || !workspaceMain) return;
+
+      let isDragging = false;
+      let startX = 0;
+      let startEditorWidth = 0;
+      let containerWidth = 0;
+
+      const MIN_EDITOR_PCT = 35;
+      const MAX_EDITOR_PCT = 75;
+
+      columnResizer.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX;
+
+        const rect = workspaceMain.getBoundingClientRect();
+        containerWidth = rect.width;
+        startEditorWidth = editorColumn.getBoundingClientRect().width;
+
+        document.body.classList.add("resizing-horizontal");
+
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+      });
+
+      function onMouseMove(e) {
+        if (!isDragging) return;
+
+        const deltaX = e.clientX - startX;
+        let newEditorPct = ((startEditorWidth + deltaX) / containerWidth) * 100;
+
+        if (newEditorPct < MIN_EDITOR_PCT) newEditorPct = MIN_EDITOR_PCT;
+        if (newEditorPct > MAX_EDITOR_PCT) newEditorPct = MAX_EDITOR_PCT;
+
+        const newPreviewPct = 100 - newEditorPct;
+
+        editorColumn.style.flex = `0 0 ${newEditorPct}%`;
+        previewColumn.style.flex = `0 0 ${newPreviewPct}%`;
+      }
+
+      function onMouseUp() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        document.body.classList.remove("resizing-horizontal");
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+      }
+    }
+
+        // ================= SECTION COLLAPSE / EXPAND (DRAG-DOWN ARROW) =================
+    function wireSectionCollapseButtons() {
+      const toggleButtons = document.querySelectorAll(".section-toggle-btn");
+      toggleButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const card = btn.closest(".editor-card");
+          if (!card) return;
+
+          const isCollapsed = card.classList.toggle("collapsed");
+          // Change arrow direction based on state
+          btn.textContent = isCollapsed ? "▸" : "▾";
+          btn.setAttribute("aria-expanded", String(!isCollapsed));
+        });
+      });
+    }
+
+
+      // ================== SECTION DRAG-AND-DROP ORDERING ==================
+  function initSectionDragAndDrop() {
+    if (!editorCardsContainer) return;
+
+    let draggedCard = null;
+
+    editorCardsContainer.querySelectorAll(".editor-card").forEach((card) => {
+      const sectionId = card.getAttribute("data-section");
+      if (!sectionId || sectionId === "header") {
+        // Option: keep header fixed at top (not draggable)
+        return;
+      }
+
+      card.setAttribute("draggable", "true");
+
+      card.addEventListener("dragstart", (e) => {
+        draggedCard = card;
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      card.addEventListener("dragend", () => {
+        if (draggedCard) {
+          draggedCard.classList.remove("dragging");
+          draggedCard = null;
+          // After drag ends, recompute section_order
+          updateSectionOrderFromDOM();
+          renderPreview();
+        }
+      });
+    });
+
+    editorCardsContainer.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      if (!draggedCard) return;
+
+      const afterElement = getDragAfterElement(editorCardsContainer, e.clientY);
+      if (afterElement == null) {
+        editorCardsContainer.appendChild(draggedCard);
+      } else {
+        editorCardsContainer.insertBefore(draggedCard, afterElement);
+      }
+    });
+  }
+
+  function getDragAfterElement(container, y) {
+    const cards = [...container.querySelectorAll(".editor-card[draggable='true']:not(.dragging)")];
+
+    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+    cards.forEach((card) => {
+      const box = card.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        closest = { offset, element: card };
+      }
+    });
+
+    return closest.element;
+  }
+
+  function updateSectionOrderFromDOM() {
+    if (!currentModel) return;
+    const order = [];
+
+    editorCardsContainer.querySelectorAll(".editor-card").forEach((card) => {
+      const sectionId = card.getAttribute("data-section");
+      if (!sectionId) return;
+      // keep header always first in logical sense if you want
+      order.push(sectionId);
+    });
+
+    // Store in model so backend and preview know the order
+    currentModel.section_order = order;
+  }
+
+  // ================== SECTION DRAG-AND-DROP ORDERING ==================
+  function initSectionDragAndDrop() {
+    if (!editorCardsContainer) return;
+
+    let draggedCard = null;
+
+    editorCardsContainer.querySelectorAll(".editor-card").forEach((card) => {
+      const sectionId = card.getAttribute("data-section");
+      if (!sectionId || sectionId === "header") {
+        // Header stays fixed at top (not draggable)
+        return;
+      }
+
+      card.setAttribute("draggable", "true");
+
+      card.addEventListener("dragstart", (e) => {
+        draggedCard = card;
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      card.addEventListener("dragend", () => {
+        if (!draggedCard) return;
+        draggedCard.classList.remove("dragging");
+        draggedCard = null;
+
+        // After drag ends, recompute section_order and refresh preview
+        updateSectionOrderFromDOM();
+        renderPreview();
+      });
+    });
+
+    editorCardsContainer.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      if (!draggedCard) return;
+
+      const afterElement = getDragAfterElement(editorCardsContainer, e.clientY);
+      if (afterElement == null) {
+        editorCardsContainer.appendChild(draggedCard);
+      } else {
+        editorCardsContainer.insertBefore(draggedCard, afterElement);
+      }
+    });
+  }
+
+  function getDragAfterElement(container, y) {
+    const cards = [
+      ...container.querySelectorAll(".editor-card[draggable='true']:not(.dragging)"),
+    ];
+
+    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+    cards.forEach((card) => {
+      const box = card.getBoundingClientRect();
+      const offset = y - (box.top + box.height / 2);
+      if (offset < 0 && offset > closest.offset) {
+        closest = { offset, element: card };
+      }
+    });
+
+    return closest.element;
+  }
+
+  function updateSectionOrderFromDOM() {
+    if (!currentModel) return;
+    const order = [];
+
+    editorCardsContainer.querySelectorAll(".editor-card").forEach((card) => {
+      const id = card.getAttribute("data-section");
+      if (!id || id === "header") return; // header always at top
+      order.push(id);
+    });
+
+    currentModel.section_order = order;
+  }
+
+    // ---------- ATS UI ----------
+
+    function resetAtsUI() {
+      atsCircleNumber.textContent = "--";
+      atsCircleSub.textContent = "Run ATS to see match vs JD.";
+      sidebarMatchedList.innerHTML = "";
+      sidebarMissingList.innerHTML = "";
+      lastAtsResult = null;
+    }
+
+    function populateAtsUI(result, labelPrefix) {
+      lastAtsResult = result;
+
+      const score =
+        result.ats_score != null
+          ? result.ats_score
+          : result.score != null
+          ? result.score
+          : null;
+
+      atsCircleNumber.textContent = score != null ? score.toString() : "--";
+      atsCircleSub.textContent =
+        labelPrefix +
+        (score != null ? " ATS score based on JD keywords." : " No score available.");
+
+      sidebarMatchedList.innerHTML = "";
+      sidebarMissingList.innerHTML = "";
+
+      // Matched list
+      const matchedTitle = document.createElement("li");
+      matchedTitle.className = "keyword-title";
+      matchedTitle.textContent = "Matched keywords:";
+      sidebarMatchedList.appendChild(matchedTitle);
+
+      (result.matched_keywords || []).slice(0, 50).forEach((kw) => {
+        const li = document.createElement("li");
+        li.className = "keyword-item keyword-matched";
+        li.textContent = kw;
+        sidebarMatchedList.appendChild(li);
+      });
+
+      // Missing list
+      const missingTitle = document.createElement("li");
+      missingTitle.className = "keyword-title";
+      missingTitle.textContent = "Missing keywords:";
+      sidebarMissingList.appendChild(missingTitle);
+
+      (result.missing_keywords || []).slice(0, 50).forEach((kw) => {
+        const li = document.createElement("li");
+        li.className = "keyword-item keyword-missing";
+        li.textContent = kw;
+        sidebarMissingList.appendChild(li);
+      });
+    // NEW: extra role-based recommendations (not in JD or resume)
+      if (result.extra_recommended_keywords && result.extra_recommended_keywords.length > 0) {
+        const extraTitle = document.createElement("li");
+        extraTitle.className = "keyword-title";
+        extraTitle.textContent = "Extra role-based suggestions:";
+        sidebarMissingList.appendChild(extraTitle);
+
+        result.extra_recommended_keywords.slice(0, 50).forEach((kw) => {
+          const li = document.createElement("li");
+          li.className = "keyword-item keyword-extra";
+          li.textContent = kw;
+          sidebarMissingList.appendChild(li);
+        });
+      }
+    }
+
+// ---------- Actions ----------
+startBtn.addEventListener("click", async () => {
+  const file = resumeFileInput.files[0];
+  if (!file) {
+    setUploadStatus("Please choose a .docx resume file.", true);
+    return;
+  }
+  if (!file.name.toLowerCase().endsWith(".docx")) {
+    setUploadStatus("Only .docx files are supported right now.", true);
+    return;
+  }
+  const jd = jdBox.value.trim();
+  if (!jd) {
+    setUploadStatus("Paste the Job Description before continuing.", true);
+    return;
+  }
+
+  currentFile = file;
+  currentJD = jd;
+  setUploadStatus("Uploading and parsing resume…");
+  setHeaderStatus("Parsing resume & running ATS…");
+  resetAtsUI();
+  showOverlay(
+    true,
+    "Analyzing your resume & JD…",
+    "Parsing DOCX, extracting sections, and running ATS scan."
+  );
+
+  try {
+    // Parse DOCX -> model
+    const fdParse = new FormData();
+    fdParse.append("file", file);
+    const parseResp = await callApi(`${API_BASE}/api/parse-docx`, fdParse);
+    const parseData = await parseResp.json();
+    if (!parseResp.ok || !parseData.model) {
+      throw new Error(parseData.error || "Failed to parse DOCX.");
+    }
+
+    baseModel = deepClone(parseData.model);
+    currentModel = deepClone(parseData.model);
+
+    // ATS original
+    const fdAts = new FormData();
+    fdAts.append("resume_file", file);
+    fdAts.append("job_description", jd);
+    const providersForAts = getSelectedLlmProviders();
+    if (providersForAts.length > 0) {
+      fdAts.append("llm_providers", providersForAts.join(","));
+    }
+    const atsResp = await callApi(`${API_BASE}/api/ats-analyze`, fdAts);
+    const atsData = await atsResp.json();
+    if (!atsResp.ok || !atsData.ats) {
+      throw new Error(atsData.error || "Failed to run ATS on original.");
+    }
+
+    populateAtsUI(atsData.ats, "Original");
+    setUploadStatus("Parsed resume and computed initial ATS score.");
+    setHeaderStatus("Workspace ready – edit on the left, preview on the right.");
+
+    // Build the editors + preview
+    renderEditorsFromModel();
+    renderPreview();
+    setWorkspaceStatusMsg(
+      "You’re in! Edit text on the left ...– preview updates live. Use sidebar buttons for GPT rewrites."
+    );
+
+    // Show Page 2 (workspace) and push a history entry
+    showScreen(SCREEN_PAGE2);
+    setNavVisible(true);
+    setActiveNav("workspace");
+
+    try {
+      if (window.history && history.pushState) {
+        history.pushState(
+          { screen: SCREEN_PAGE2 },
+          "",
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (err) {
+      console.warn("Could not push history state for workspace:", err);
+    }
+  } catch (e) {
+    console.error(e);
+
+    setUploadStatus("Error: " + e.message, true);
+    setHeaderStatus("Something failed – fix the error on step 1.");
+  } finally {
+    showOverlay(false);
+  }
+});
+
+
+
+    async function rewriteSection(sectionName) {
+      if (!currentModel) {
+        setWorkspaceStatusMsg("No model loaded – parse a resume first.", true);
+        return;
+      }
+      if (!currentJD) {
+        setWorkspaceStatusMsg("Job description is missing.", true);
+        return;
+      }
+
+      setWorkspaceStatusMsg(`Rewriting ${sectionName} with JD…`);
+      showOverlay(true, `Rewriting ${sectionName}…`, "Using JD keywords and rules to update the content.");
+
+      const fd = new FormData();
+      fd.append("model_json", JSON.stringify(currentModel));
+      fd.append("job_description", currentJD);
+      fd.append("section", sectionName);
+      fd.append("include_ats_keywords", includeAtsInRewrite.checked ? "true" : "false");
+      fd.append("force_missing_keywords", forceMissingKeywords.checked ? "true" : "false");
+
+      const providers = getSelectedLlmProviders();
+      if (providers.length > 0) {
+        fd.append("llm_providers", providers.join(","));
+      }
+
+      try {
+        const resp = await callApi(`${API_BASE}/api/rewrite-sections`, fd);
+        const data = await resp.json();
+        if (!resp.ok || data.error) {
+          throw new Error(data.error || "Rewrite failed.");
+        }
+        if (!data.model) {
+          throw new Error("No 'model' returned from backend.");
+        }
+        currentModel = data.model;
+
+        // If backend tells us which LLM was used, show it; otherwise fall back to selected providers
+        let toastText = "";
+        if (data.llm_provider || data.llm_model) {
+          const p = data.llm_provider || "LLM";
+          const m = data.llm_model ? ` (${data.llm_model})` : "";
+          toastText = `Content generated by ${p}${m}`;
+        } else {
+          const selected = getSelectedLlmProviders();
+          if (selected.length > 0) {
+            toastText = `Content generated using: ${selected.join(", ")}`;
+          }
+        }
+        if (toastText) {
+          showLlmToast(toastText);
+        }
+
+        // If backend returned ATS info, refresh ATS panel automatically
+        if (data.ats) {
+          populateAtsUI(data.ats, "Rewritten");
+        }
+
+        renderEditorsFromModel();
+        renderPreview();
+        setWorkspaceStatusMsg(`Rewrote ${sectionName} using JD.`);
+      } catch (e) {
+        console.error(e);
+        setWorkspaceStatusMsg("Error rewriting section: " + e.message, true);
+      } finally {
+        showOverlay(false);
+      }
+    }
+
+    btnRewriteSummary.addEventListener("click", () => rewriteSection("summary"));
+    btnRewriteSkills.addEventListener("click", () => rewriteSection("skills"));
+    btnRewriteExperience.addEventListener("click", () => rewriteSection("experience"));
+    btnRewriteAll.addEventListener("click", () => rewriteSection("all"));
+    // Delete entire Summary section (header X button)
+    deleteSummarySectionBtn.addEventListener("click", () => {
+      if (!currentModel || !currentModel.summary || !Array.isArray(currentModel.summary.bullets)) {
+        return;
+      }
+
+      const hasContent = currentModel.summary.bullets.some(
+        (b) => b && b.trim()
+      );
+
+      const msg = hasContent
+        ? "Delete the entire Summary section from this tailored resume?"
+        : "This Summary section is empty. Remove it from the resume?";
+
+      if (!window.confirm(msg)) return;
+
+      // Remove from current model (what user is editing)
+      delete currentModel.summary;
+
+      // Keep baseline in sync if it exists
+      if (baseModel && baseModel.summary) {
+        delete baseModel.summary;
+      }
+
+      renderSummaryEditor();
+      renderPreview();
+      setWorkspaceStatusMsg("Summary section removed from current model.");
+    });
+        // ================= HEADER SECTION DELETE (ENTIRE SECTION) =================
+    if (deleteHeaderSectionBtn) {
+      deleteHeaderSectionBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!currentModel.header && !currentModel.header_meta) {
+          alert("There is no Header section in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove the Header section from this version?\n\n" +
+            "This will hide Header in the editor + preview. " +
+            "The original DOCX header will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.header;
+        delete currentModel.header_meta;
+
+        if (headerEditor) {
+          headerEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Header section removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Header section removed for this version.");
+      });
+    }
+
+    // ================= SKILLS SECTION DELETE (ENTIRE SECTION) =================
+    if (deleteSkillsSectionBtn) {
+      deleteSkillsSectionBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!currentModel.skills) {
+          alert("There is no Skills section in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove the Skills section from this version?\n\n" +
+            "This will hide Skills in the editor + preview. " +
+            "The original DOCX skills will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.skills;
+        
+
+        if (skillsEditor) {
+          skillsEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Skills section removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Skills section removed for this version.");
+      });
+    }
+
+    // ================= EXPERIENCE SECTION DELETE (ENTIRE SECTION) =================
+    if (deleteExperienceSectionBtn) {
+      deleteExperienceSectionBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!currentModel.experience || !Array.isArray(currentModel.experience) || currentModel.experience.length === 0) {
+          alert("There is no Experience section in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove the Experience section from this version?\n\n" +
+            "This will hide all jobs in the editor + preview. " +
+            "The original DOCX experience will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.experience;
+
+        if (experienceEditor) {
+          experienceEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Experience section removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Experience section removed for this version.");
+      });
+    }
+
+    // ================= EDUCATION SECTION DELETE (ENTIRE SECTION) =================
+    if (deleteEducationSectionBtn) {
+      deleteEducationSectionBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!currentModel.education) {
+          alert("There is no Education section in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove the Education section from this version?\n\n" +
+            "This will hide Education in the editor + preview. " +
+            "The original DOCX education will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.education;
+
+        if (educationEditor) {
+          educationEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Education section removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Education section removed for this version.");
+      });
+    }
+
+    // ================= CERTIFICATIONS SECTION DELETE (ENTIRE SECTION) =================
+    if (deleteCertsSectionBtn) {
+      deleteCertsSectionBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!currentModel.certifications) {
+          alert("There is no Certifications section in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove the Certifications section from this version?\n\n" +
+            "This will hide Certifications in the editor + preview. " +
+            "The original DOCX certifications will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.certifications;
+
+        if (certsEditor) {
+          certsEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Certifications section removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Certifications section removed for this version.");
+      });
+    }
+
+    // ================= PROJECTS SECTION DELETE (ENTIRE SECTION) =================
+    if (deleteProjectsSectionBtn) {
+      deleteProjectsSectionBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!currentModel.projects) {
+          alert("There is no Projects section in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove the Projects section from this version?\n\n" +
+            "This will hide Projects in the editor + preview. " +
+            "The original DOCX projects will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.projects;
+
+        if (projectsEditor) {
+          projectsEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Projects section removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Projects section removed for this version.");
+      });
+    }
+
+    // ================= CUSTOM SECTIONS DELETE (ALL CUSTOM SECTIONS) =================
+    if (deleteCustomSectionsBtn) {
+      deleteCustomSectionsBtn.addEventListener("click", () => {
+        if (!currentModel) {
+          alert("No model loaded yet.");
+          return;
+        }
+
+        if (!Array.isArray(currentModel.custom_sections) || currentModel.custom_sections.length === 0) {
+          alert("There are no custom sections in this resume model.");
+          return;
+        }
+
+        const ok = confirm(
+          "Remove all custom sections from this version?\n\n" +
+            "This will hide custom sections in the editor + preview. " +
+            "The original DOCX will NOT be changed unless you download a new one."
+        );
+        if (!ok) return;
+
+        delete currentModel.custom_sections;
+
+        if (customSectionsEditor) {
+          customSectionsEditor.innerHTML =
+            "<p style='font-size:12px;color:#6b7280;'>Custom sections removed for this version.</p>";
+        }
+
+        renderPreview();
+        //saveWorkspaceSnapshot();
+        setWorkspaceStatusMsg("Custom sections removed for this version.");
+      });
+    }
+
+
+    btnAtsOriginal.addEventListener("click", async () => {
+      if (!currentFile) {
+        setWorkspaceStatusMsg("No resume file loaded.", true);
+        return;
+      }
+      if (!currentJD) {
+        setWorkspaceStatusMsg("Job description missing.", true);
+        return;
+      }
+
+      setWorkspaceStatusMsg("Running ATS analysis on ORIGINAL resume…");
+      showOverlay(true, "ATS: original resume", "Using your untouched DOCX against this JD.");
+
+      const fd = new FormData();
+      fd.append("resume_file", currentFile);
+      fd.append("job_description", currentJD);
+
+      try {
+        const resp = await callApi(`${API_BASE}/api/ats-analyze`, fd);
+        const data = await resp.json();
+        if (!resp.ok || data.error || !data.ats) {
+          throw new Error(data.error || "ATS analyze failed.");
+        }
+        populateAtsUI(data.ats, "Original");
+        setWorkspaceStatusMsg("ATS (original) complete.");
+      } catch (e) {
+        console.error(e);
+        setWorkspaceStatusMsg("Error running ATS (original): " + e.message, true);
+      } finally {
+        showOverlay(false);
+      }
+    });
+
+    btnAtsUpdated.addEventListener("click", async () => {
+      if (!currentFile || !currentModel) {
+        setWorkspaceStatusMsg("Need both file and updated model before ATS.", true);
+        return;
+      }
+      if (!currentJD) {
+        setWorkspaceStatusMsg("Job description missing.", true);
+        return;
+      }
+
+      setWorkspaceStatusMsg("Running ATS analysis on UPDATED resume…");
+      showOverlay(true, "ATS: updated resume", "We’ll apply your JSON model and re-score.");
+
+      const fd = new FormData();
+      fd.append("resume_file", currentFile);
+      fd.append("job_description", currentJD);
+      fd.append("model_json", JSON.stringify(currentModel));
+      if (lastAtsResult && Array.isArray(lastAtsResult.keywords)) {
+        fd.append("keywords_json", JSON.stringify(lastAtsResult.keywords));
+      }
+
+      try {
+        const resp = await callApi(`${API_BASE}/api/ats-analyze-updated`, fd);
+        const data = await resp.json();
+        if (!resp.ok || data.error || !data.ats) {
+          throw new Error(data.error || "ATS analyze (updated) failed.");
+        }
+        populateAtsUI(data.ats, "Updated");
+        setWorkspaceStatusMsg("ATS (updated) complete.");
+      } catch (e) {
+        console.error(e);
+        setWorkspaceStatusMsg("Error running ATS (updated): " + e.message, true);
+      } finally {
+        showOverlay(false);
+      }
+    });
+
+      btnDownload.addEventListener("click", async () => {
+  if (!currentFile || !currentModel) {
+    setWorkspaceStatusMsg("No resume file or model loaded.", true);
+    showErrorOverlay(
+      "Cannot download DOCX",
+      "No resume file or model loaded.\nUpload a DOCX and parse it before generating the updated file."
+    );
+    return;
+  }
+
+  setWorkspaceStatusMsg("Generating updated DOCX…");
+  showOverlay(true, "Generating DOCX", "Applying your current model back to the Word template.");
+
+  const fd = new FormData();
+  fd.append("file", currentFile);
+  fd.append("model_json", JSON.stringify(currentModel));
+
+  try {
+    // use callApi so the JWT is attached
+    const resp = await callApi(`${API_BASE}/api/apply-model`, fd);
+
+    // DEBUG: See all headers the browser actually received
+      console.log([...resp.headers.entries()]);
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`Download failed: ${resp.status} ${text}`);
+    }
+
+    // ---------- NEW FILENAME LOGIC ----------
+    let downloadName = "updated_resume.docx";
+
+    const cd =
+      resp.headers.get("Content-Disposition") ||
+      resp.headers.get("content-disposition");
+
+    if (cd) {
+      const match = cd.match(/filename="?([^"]+)"?/i);
+      if (match && match[1]) {
+        downloadName = match[1];
+      }
+    }
+    // ---------------------------------------
+
+    const blob = await resp.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = downloadName;   // <-- use backend name
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    setWorkspaceStatusMsg("Downloaded updated resume DOCX.");
+  } catch (e) {
+    console.error(e);
+    const msg = e && e.message ? e.message : "Something went wrong while generating the DOCX.";
+    showErrorOverlay("Download failed", msg);
+    setWorkspaceStatusMsg("Download failed: " + msg, true);
+  } finally {
+    showOverlay(false);
+  }
+});
+
+    // Initial preview placeholder
+    renderPreview();
+
+
+    // Wire up collapse/expand buttons on each editor card
+    wireSectionCollapseButtons();
+    // Initialize drag-and-drop reordering for sections
+    initSectionDragAndDrop();
+
+    // Initialize sidebar UI (expanded + ATS tab selected)
+    updateSidebarCollapseUI();
+    activateSidebarTab("ats");
+
+    // Initialize column resizer between editor and preview
+    initColumnResizer();
+  </script>
+</body>
+</html>
