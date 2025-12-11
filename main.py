@@ -3692,6 +3692,101 @@ def convert_docx_to_pdf_bytes(docx_bytes: bytes) -> bytes:
             return f.read()
 
 
+def _rename_docx_to_pdf(filename: str) -> str:
+    """
+    Utility to turn "Something.docx" into "Something.pdf" while preserving
+    the base name if the extension is missing or different.
+    """
+    if not isinstance(filename, str) or not filename:
+        return "output.pdf"
+
+    lower = filename.lower()
+    if lower.endswith(".docx"):
+        return filename[:-5] + ".pdf"
+    if lower.endswith(".doc"):
+        return filename[:-4] + ".pdf"
+    return filename + ".pdf"
+
+
+@app.post("/download_resume_pdf")
+async def download_resume_pdf(
+    file: UploadFile = File(...),
+    model_json: str = Form(...),
+):
+    """
+    Apply the current resume model to the uploaded DOCX and return a PDF.
+    """
+    docx_bytes = await file.read()
+    try:
+        model_dict = json.loads(model_json)
+    except json.JSONDecodeError:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid JSON for model."},
+        )
+
+    try:
+        updated_docx = apply_model_and_generate_docx(docx_bytes, model_dict)
+        pdf_bytes = convert_docx_to_pdf_bytes(updated_docx)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to generate PDF: {e}"},
+        )
+
+    filename = build_filename_from_model(model_dict, kind="resume")
+    pdf_name = _rename_docx_to_pdf(filename)
+
+    return StreamingResponse(
+        BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{pdf_name}"'},
+    )
+
+
+@app.post("/download_cover_letter_pdf")
+async def download_cover_letter_pdf(
+    cover_letter_text: str = Form(...),
+    model_json: Optional[str] = Form(None),
+):
+    """
+    Build a PDF cover letter using the generated text and optional model header.
+    """
+    text = (cover_letter_text or "").strip()
+    if not text:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Cover letter text is empty."},
+        )
+
+    model_dict: Dict[str, Any] = {}
+    if model_json:
+        try:
+            model_dict = json.loads(model_json)
+            if not isinstance(model_dict, dict):
+                model_dict = {}
+        except json.JSONDecodeError:
+            model_dict = {}
+
+    try:
+        docx_bytes = build_cover_letter_docx(model_dict, text)
+        pdf_bytes = convert_docx_to_pdf_bytes(docx_bytes)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to generate cover letter PDF: {e}"},
+        )
+
+    filename = build_filename_from_model(model_dict, kind="cover_letter")
+    pdf_name = _rename_docx_to_pdf(filename)
+
+    return StreamingResponse(
+        BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{pdf_name}"'},
+    )
+
+
 @app.post("/api/preview-docx")
 async def preview_docx(
     file: UploadFile = File(...),

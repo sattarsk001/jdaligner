@@ -2664,6 +2664,13 @@
       >
         Download updated DOCX
       </button>
+      <button
+        id="btnDownloadPdf"
+        class="preview-download-btn secondary"
+        type="button"
+      >
+        Download resume PDF
+      </button>
     </div>
 
     <div class="preview-card">
@@ -2689,6 +2696,13 @@
         class="cover-letter-download-btn"
       >
         Download cover letter
+      </button>
+      <button
+        type="button"
+        id="btnDownloadCoverPdf"
+        class="cover-letter-download-btn secondary"
+      >
+        Download cover letter PDF
       </button>
     </div>
     <div id="coverLetterStatus" class="cover-letter-status">
@@ -3420,6 +3434,7 @@ if (page0ContinueBtn && skipAuthBtn) {
     const btnAtsOriginal = document.getElementById("btnAtsOriginal");
     const btnAtsUpdated = document.getElementById("btnAtsUpdated");
     const btnDownload = document.getElementById("btnDownload");
+    const btnDownloadPdf = document.getElementById("btnDownloadPdf");
 
     const includeAtsInRewrite = document.getElementById("includeAtsInRewrite");
     const forceMissingKeywords = document.getElementById("forceMissingKeywords");
@@ -3432,6 +3447,7 @@ if (page0ContinueBtn && skipAuthBtn) {
     const btnPreviewCover = document.getElementById("btnPreviewCover");
     const btnGenerateCoverLetter = document.getElementById("btnGenerateCoverLetter");
     const btnDownloadCover = document.getElementById("btnDownloadCover");
+    const btnDownloadCoverPdf = document.getElementById("btnDownloadCoverPdf");
     const coverLetterContent = document.getElementById("coverLetterContent");
     const coverLetterStatus = document.getElementById("coverLetterStatus");
     const editorCardsContainer = document.getElementById("editorCardsContainer");
@@ -5043,6 +5059,12 @@ function renderHeaderEditor() {
     });
   }
 
+  if (btnDownloadCoverPdf) {
+    btnDownloadCoverPdf.addEventListener("click", () => {
+      downloadCoverLetterPdf();
+    });
+  }
+
 
 
 async function generateCoverLetter() {
@@ -5204,6 +5226,139 @@ async function generateCoverLetter() {
       const msg = e && e.message ? e.message : "Something went wrong while generating the DOCX.";
       showErrorOverlay("Cover letter download failed", msg);
       setWorkspaceStatusMsg("Cover letter download failed: " + msg, true);
+    } finally {
+      showOverlay(false);
+    }
+  }
+
+
+  async function downloadResumePdf() {
+    if (!currentFile || !currentModel) {
+      setWorkspaceStatusMsg("No resume file or model loaded.", true);
+      showErrorOverlay(
+        "Cannot download PDF",
+        "No resume file or model loaded.\nUpload a DOCX and parse it before generating the PDF."
+      );
+      return;
+    }
+
+    setWorkspaceStatusMsg("Generating resume PDF…");
+    showOverlay(true, "Generating PDF", "Applying your current model and converting to PDF.");
+
+    const fd = new FormData();
+    fd.append("file", currentFile);
+    fd.append("model_json", JSON.stringify(currentModel));
+
+    try {
+      const resp = await callApi(`${API_BASE}/download_resume_pdf`, fd);
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(`Download failed: ${resp.status} ${text}`);
+      }
+
+      let downloadName = "updated_resume.pdf";
+
+      const cd =
+        resp.headers.get("Content-Disposition") ||
+        resp.headers.get("content-disposition");
+
+      if (cd) {
+        const match = cd.match(/filename="?([^"]+)"?/i);
+        if (match && match[1]) {
+          downloadName = match[1];
+        }
+      }
+
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      setWorkspaceStatusMsg("Downloaded resume PDF.");
+    } catch (e) {
+      console.error(e);
+      const msg = e && e.message ? e.message : "Something went wrong while generating the PDF.";
+      showErrorOverlay("PDF download failed", msg);
+      setWorkspaceStatusMsg("PDF download failed: " + msg, true);
+    } finally {
+      showOverlay(false);
+    }
+  }
+
+
+  async function downloadCoverLetterPdf() {
+    if (!coverLetterContent || !coverLetterContent.textContent.trim()) {
+      showErrorOverlay(
+        "Cannot download cover letter",
+        "No cover letter has been generated yet.\nClick \"Generate cover letter\" first."
+      );
+      return;
+    }
+
+    if (!currentModel) {
+      showErrorOverlay(
+        "Cannot download cover letter",
+        "No parsed resume model is available.\nUpload a DOCX and parse it first."
+      );
+      return;
+    }
+
+    showOverlay(
+      true,
+      "Preparing PDF…",
+      "Building a formatted cover letter PDF document."
+    );
+
+    const fd = new FormData();
+    fd.append("cover_letter_text", coverLetterContent.textContent || "");
+    fd.append("model_json", JSON.stringify(currentModel));
+
+    try {
+      const resp = await fetch(`${API_BASE}/download_cover_letter_pdf`, {
+        method: "POST",
+        body: fd
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || `HTTP ${resp.status}`);
+      }
+
+      let downloadName = "cover_letter.pdf";
+
+      const cd =
+        resp.headers.get("Content-Disposition") ||
+        resp.headers.get("content-disposition");
+
+      if (cd) {
+        const match = cd.match(/filename="?([^"]+)"?/i);
+        if (match && match[1]) {
+          downloadName = match[1];
+        }
+      }
+
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = downloadName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      setWorkspaceStatusMsg("Downloaded cover letter PDF.");
+    } catch (e) {
+      console.error(e);
+      const msg = e && e.message ? e.message : "Something went wrong while generating the PDF.";
+      showErrorOverlay("Cover letter PDF download failed", msg);
+      setWorkspaceStatusMsg("Cover letter PDF download failed: " + msg, true);
     } finally {
       showOverlay(false);
     }
@@ -6045,6 +6200,12 @@ startBtn.addEventListener("click", async () => {
         showOverlay(false);
       }
     });
+
+    if (btnDownloadPdf) {
+      btnDownloadPdf.addEventListener("click", () => {
+        downloadResumePdf();
+      });
+    }
 
       btnDownload.addEventListener("click", async () => {
   if (!currentFile || !currentModel) {
