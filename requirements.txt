@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-docx
+python-multipart
+openai
+google-genai
+
+python-dotenv
+sqlalchemy
+PyJWT
+passlib[bcrypt]
+requests
+aiofiles
+jinja2
